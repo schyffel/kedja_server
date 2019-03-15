@@ -18,6 +18,7 @@ requires = [
     'ZODB3',
     'arche',
     'cornice',
+    'colander',
 ]
 
 tests_require = [
