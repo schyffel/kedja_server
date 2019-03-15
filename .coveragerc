@@ -1,0 +1,3 @@
+[run]
+source = src/kedja
+omit = src/kedja/test*

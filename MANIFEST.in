@@ -1,0 +1,3 @@
+include *.txt *.rst
+recursive-exclude etc var
+recursive-include src/kedja_server *.ico *.png *.css *.gif *.jpg *.pt *.txt *.js
