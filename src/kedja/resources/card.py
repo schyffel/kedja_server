@@ -5,6 +5,7 @@ from zope.interface import implementer
 
 from kedja import _
 from kedja.interfaces import ICard
+from kedja.resources.mixins import JSONRenderable
 
 
 class CardSchema(colander.Schema):
@@ -15,7 +16,7 @@ class CardSchema(colander.Schema):
 
 
 @implementer(ICard)
-class Card(Folder):
+class Card(Folder, JSONRenderable):
     pass
 
 

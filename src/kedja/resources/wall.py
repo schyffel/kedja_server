@@ -5,6 +5,7 @@ from zope.interface import implementer
 
 from kedja import _
 from kedja.interfaces import IWall
+from kedja.resources.mixins import JSONRenderable
 
 
 class WallSchema(colander.Schema):
@@ -15,7 +16,7 @@ class WallSchema(colander.Schema):
 
 
 @implementer(IWall)
-class Wall(Folder):
+class Wall(Folder, JSONRenderable):
     pass
 
 

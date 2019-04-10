@@ -11,13 +11,13 @@ class RootSchema(colander.Schema):
     title = colander.SchemaNode(
         colander.String(),
         title = _("Title"),
+        validator=colander.Length(min=5, max=100),
     )
 
 
 @implementer(IRoot)
 class Root(Folder):
     """ Application root - created once. """
-
 
 
 RootContent = ContentType(factory=Root, schema=RootSchema, title=_("Root"))

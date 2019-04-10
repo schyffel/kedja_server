@@ -5,6 +5,7 @@ from zope.interface import implementer
 
 from kedja import _
 from kedja.interfaces import ICollection
+from kedja.resources.mixins import JSONRenderable
 
 
 class CollectionSchema(colander.Schema):
@@ -15,7 +16,7 @@ class CollectionSchema(colander.Schema):
 
 
 @implementer(ICollection)
-class Collection(Folder):
+class Collection(Folder, JSONRenderable):
     pass
 
 
