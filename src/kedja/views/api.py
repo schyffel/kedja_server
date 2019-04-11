@@ -92,4 +92,10 @@ def includeme(config):
     config.add_route('api_delete', '/api/delete/{type_name}/{rid}')
     # Schema-definitions - Update
     config.add_route('api_update_schema', '/api/schema/update/{rid}')
+    # Create relation
+    # FIXME
+    # Update relation
+
+    # Remove relation
+
     config.scan(__name__)
