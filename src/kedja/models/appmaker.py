@@ -1,6 +1,7 @@
 from logging import getLogger
 
 from arche.objectmap.rid_map import ResourceIDMap
+from kedja.models.relations import RelationMap
 
 
 logger = getLogger(__name__)
@@ -15,4 +16,5 @@ def appmaker(zodb_root, request):
         zodb_root['app_root'] = app_root
         app_root.rid = 1
         app_root.rid_map = ResourceIDMap(app_root)
+        app_root.relations_map = RelationMap(app_root)
         return app_root
