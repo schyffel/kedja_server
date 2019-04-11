@@ -51,3 +51,9 @@ class RelationMap(Persistent):
             if relation_id in self.relation_to_rids: # pragma: no cover
                 relation_id = None
         return relation_id
+
+    def find_relations(self, rid:int, *rids):
+        first = set(self.rid_to_relations.get(rid, ()))
+        if rids:
+            return first.intersection(*[self.rid_to_relations.get(x, set()) for x in rids])
+        return first

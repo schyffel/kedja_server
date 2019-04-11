@@ -44,3 +44,12 @@ class RelationsTests(TestCase):
     def test_new_relation_id(self):
         map = self._cut()
         self.assertIsInstance(map.new_relation_id(), int)
+
+    def test_find_relation(self):
+        map = self._cut()
+        map[1] = (1, 2, 3)
+        map[2] = (2, 3)
+        self.assertEqual(map.find_relations(1, 2, 3), {1})
+        self.assertEqual(map.find_relations(3), {1, 2})
+        self.assertEqual(map.find_relations(2, 3), {1, 2})
+        self.assertEqual(map.find_relations(1, 2), {1})
