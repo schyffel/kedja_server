@@ -13,7 +13,7 @@ from kedja.views.base import BaseView
 
 
 @view_defaults(renderer='json')
-class APIVIew(BaseView):
+class APIView(BaseView):
 
     def get_resource(self, rid):
         try:
