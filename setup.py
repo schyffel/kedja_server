@@ -17,8 +17,11 @@ requires = [
     'transaction',
     'ZODB3',
     'arche',
-    'cornice',
+    'peppercorn',
+  #  'cornice',
+  #  'cornice_swagger',
     'colander',
+    'colander_jsonschema',
 ]
 
 tests_require = [
