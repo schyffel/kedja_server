@@ -100,6 +100,19 @@ class APIView(BaseView):
                 results.append(x)
         return results
 
+    @view_config(route_name='api_recursive_read', request_method='GET')
+    def recursive_read(self):
+        # FIXME: Only return resources the current user have access to
+        resource = self.get_resource(self.request.matchdict['rid'])
+        return self.recursive_list(resource)
+
+    def recursive_list(self, resource):
+        result = resource.__json__(self.request)
+        result['contained'] = []
+        for x in resource.values():
+            result['contained'].append(self.recursive_list(x))
+        return result
+
     @view_config(route_name='api_update_schema', request_method='GET')
     def schema_update(self):
         rid = self.request.matchdict['rid']
@@ -121,6 +134,8 @@ def includeme(config):
     config.add_route('api_delete', '/api/delete/{type_name}/{rid}')
     # List contents
     config.add_route('api_list', '/api/list/{type_name}/{parent_rid}')
+    # Get all of the content contained within the resource specified at parent_rid
+    config.add_route('api_recursive_read', '/api/recursive_read/{rid}')
     # Schema-definitions - Update
     config.add_route('api_update_schema', '/api/schema/update/{rid}')
     # Create relation

@@ -120,7 +120,6 @@ class APIViewUnitTests(TestCase):
         request = testing.DummyRequest(method='DELETE')
         request.matchdict['type_name'] = 'Dummy'
         request.matchdict['rid'] = 2
-        #apply_request_extensions(request)
 
         inst = self._cut(root, request)
         response = inst.delete()
@@ -129,17 +128,62 @@ class APIViewUnitTests(TestCase):
         self.assertEqual(request.response.status, "202 Accepted")
         self.assertNotIn(dummy, root.values())
 
+    def test_list(self):
+        root = self.config.registry.content('Root')
+        dummy2 = Dummy()
+        dummy2.rid = 2
+        root['hello'] = dummy2
+        dummy3 = Dummy()
+        dummy3.rid = 3
+        root['bye'] = dummy3
 
-    # def test_home(self):
-    #     from  import TutorialViews
-    #
-    #     request = testing.DummyRequest()
-    #     request.matchdict['first'] = 'First'
-    #     request.matchdict['last'] = 'Last'
-    #     inst = TutorialViews(request)
-    #     response = inst.home()
-    #     self.assertEqual(response['first'], 'First')
-    #     self.assertEqual(response['last'], 'Last')
+        request = testing.DummyRequest()
+        request.matchdict['type_name'] = 'Dummy'
+        request.matchdict['parent_rid'] = 1
+
+        inst = self._cut(root, request)
+        response = inst.list()
+
+        # Note: No ordering yet
+        self.assertIn(dummy2, response)
+        self.assertIn(dummy3, response)
+        self.assertEqual(len(response), 2)
+        self.assertEqual(request.response.status, "200 OK")
+
+    def test_recursive_read(self):
+        root = self.config.registry.content('Root')
+        dummy2 = Dummy()
+        dummy2.rid = 2
+        root['hello'] = dummy2
+        dummy3 = Dummy()
+        dummy3.rid = 3
+        root['bye'] = dummy3
+
+        #Contained in 'hello'/dummy2
+        dummy5 = Dummy()
+        dummy5.rid = 5
+        dummy2['5'] = dummy5
+
+        dummy6 = Dummy()
+        dummy6.rid = 6
+        dummy2['6'] = dummy6
+
+        request = testing.DummyRequest()
+        request.matchdict['rid'] = 2
+        apply_request_extensions(request)
+
+        inst = self._cut(root, request)
+        response = inst.recursive_read()
+
+        # Note: No ordering yet
+        results = \
+        {'type_name': 'Dummy', 'rid': 2, 'data': {},
+         'contained': [{'type_name': 'Dummy', 'rid': 5, 'data': {}, 'contained': []},
+                       {'type_name': 'Dummy', 'rid': 6, 'data': {}, 'contained': []}]}
+        self.assertEqual(request.response.status, "200 OK")
+        self.assertEqual(len(response['contained']), 2)
+        self.assertEqual(response['contained'][0]['type_name'], 'Dummy')
+
 
 
 # class APIViewFunctionalTests(TestCase):
