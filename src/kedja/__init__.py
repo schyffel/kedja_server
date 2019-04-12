@@ -32,6 +32,7 @@ def main(global_config, **settings):
         config.include('arche.schemas')
         # Internal
         config.include('.routes')
+        config.include('.models')
         config.include('.resources')
         config.include('.views')
     return config.make_wsgi_app()

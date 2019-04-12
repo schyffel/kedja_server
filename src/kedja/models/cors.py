@@ -1,4 +1,4 @@
-from pyramid.events import NewRequest
+from pyramid.interfaces import INewRequest
 
 
 def add_cors_headers_response_callback(event):
@@ -8,12 +8,12 @@ def add_cors_headers_response_callback(event):
         'Access-Control-Allow-Methods': 'POST,GET,DELETE,PUT',
 
         #'Access-Control-Allow-Methods': 'POST,GET,DELETE,PUT,OPTIONS',
-       # 'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, Authorization',
-       # 'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, Authorization',
+        'Access-Control-Allow-Credentials': 'true',
        # 'Access-Control-Max-Age': '1728000',
         })
     event.request.add_response_callback(cors_headers)
 
 
 def includeme(config):
-    config.add_subscriber(add_cors_headers_response_callback, NewRequest)
+    config.add_subscriber(add_cors_headers_response_callback, INewRequest)
