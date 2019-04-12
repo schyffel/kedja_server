@@ -89,6 +89,17 @@ class APIView(BaseView):
         self.request.response.status = 202  # Accepted
         return {'deleted': int(self.request.matchdict['rid'])}
 
+    @view_config(route_name='api_list', request_method='GET')
+    def list(self):
+        # FIXME: Only return resources the current user have access to
+        resource = self.get_resource(self.request.matchdict['parent_rid'])
+        requested_type_name = self.request.matchdict['type_name']
+        results = []
+        for x in resource.values():
+            if self.content.get_type(x) == requested_type_name:
+                results.append(x)
+        return results
+
     @view_config(route_name='api_update_schema', request_method='GET')
     def schema_update(self):
         rid = self.request.matchdict['rid']
@@ -108,6 +119,8 @@ def includeme(config):
     config.add_route('api_update', '/api/update/{type_name}/{rid}')
     # Delete
     config.add_route('api_delete', '/api/delete/{type_name}/{rid}')
+    # List contents
+    config.add_route('api_list', '/api/list/{type_name}/{parent_rid}')
     # Schema-definitions - Update
     config.add_route('api_update_schema', '/api/schema/update/{rid}')
     # Create relation
