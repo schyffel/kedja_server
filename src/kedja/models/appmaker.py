@@ -16,5 +16,5 @@ def appmaker(zodb_root, request):
         zodb_root['app_root'] = app_root
         app_root.rid = 1
         app_root.rid_map = ResourceIDMap(app_root)
-        app_root.relations_map = RelationMap(app_root)
+        app_root.relations_map = RelationMap()
         return app_root
