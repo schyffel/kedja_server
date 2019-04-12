@@ -13,8 +13,6 @@ def root_factory(request):
     return appmaker(conn.root(), request)
 
 
-
-
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
@@ -30,6 +28,7 @@ def main(global_config, **settings):
         config.include('arche.predicates')
         config.include('arche.request_methods')
         config.include('arche.content')
+        config.include('arche.mutator')
         config.include('arche.schemas')
         # Internal
         config.include('.routes')
