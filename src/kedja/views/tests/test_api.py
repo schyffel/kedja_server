@@ -3,10 +3,11 @@ from unittest import TestCase
 import colander
 from arche.content import ContentType
 from arche.folder import Folder
-from kedja.resources.mixins import JSONRenderable
 from pyramid import testing
 from pyramid.httpexceptions import HTTPNotFound
 from pyramid.request import apply_request_extensions
+
+from kedja.resources.mixins import JSONRenderable
 
 
 class DummySchema(colander.Schema):
@@ -61,7 +62,7 @@ class APIViewUnitTests(TestCase):
         root = self.config.registry.content('Root')
         request = testing.DummyRequest(method='GET')
         request.matchdict['type_name'] = 'Root'
-        request.matchdict['rid'] = 1  # Root
+        request.matchdict['rid'] = "1"  # Root
         inst = self._cut(root, request)
         response = inst.read()
         self.assertIsInstance(response, Root)
@@ -76,7 +77,7 @@ class APIViewUnitTests(TestCase):
 
         request = testing.DummyRequest(method='GET')
         request.matchdict['type_name'] = 'Dummy'
-        request.matchdict['rid'] = 2
+        request.matchdict['rid'] = "2"
 
         inst = self._cut(root, request)
         response = inst.read()
@@ -89,7 +90,7 @@ class APIViewUnitTests(TestCase):
         root = self.config.registry.content('Root')
         request = testing.DummyRequest(method='GET')
         request.matchdict['type_name'] = 'Woot'
-        request.matchdict['rid'] = 1  # Root
+        request.matchdict['rid'] = "1"  # Root
         inst = self._cut(root, request)
         self.assertRaises(HTTPNotFound, inst.read)
 
@@ -119,7 +120,7 @@ class APIViewUnitTests(TestCase):
 
         request = testing.DummyRequest(method='DELETE')
         request.matchdict['type_name'] = 'Dummy'
-        request.matchdict['rid'] = 2
+        request.matchdict['rid'] = "2"
 
         inst = self._cut(root, request)
         response = inst.delete()
@@ -139,7 +140,7 @@ class APIViewUnitTests(TestCase):
 
         request = testing.DummyRequest()
         request.matchdict['type_name'] = 'Dummy'
-        request.matchdict['parent_rid'] = 1
+        request.matchdict['parent_rid'] = "1"
 
         inst = self._cut(root, request)
         response = inst.list()
@@ -169,7 +170,7 @@ class APIViewUnitTests(TestCase):
         dummy2['6'] = dummy6
 
         request = testing.DummyRequest()
-        request.matchdict['rid'] = 2
+        request.matchdict['rid'] = "2"
         apply_request_extensions(request)
 
         inst = self._cut(root, request)
@@ -184,6 +185,91 @@ class APIViewUnitTests(TestCase):
         self.assertEqual(len(response['contained']), 2)
         self.assertEqual(response['contained'][0]['type_name'], 'Dummy')
 
+    def test_create_relation(self):
+        root = self.config.registry.content('Root')
+        dummy2 = Dummy(rid=2)
+        root['hello'] = dummy2
+        dummy3 = Dummy(rid=3)
+        root['bye'] = dummy3
+
+        request = testing.DummyRequest()
+        request.matchdict['rids'] = ("2", "3")
+        apply_request_extensions(request)
+
+        inst = self._cut(root, request)
+        response = inst.create_relation()
+
+        self.assertIn('relation_id', response)
+        self.assertEqual(set(root.relations_map[response['relation_id']]), {2, 3})
+        self.assertEqual(request.response.status, "201 Created")
+
+    def test_read_relation(self):
+        root = self.config.registry.content('Root')
+        root.relations_map[1] = (2, 3, 4)
+
+        request = testing.DummyRequest()
+        request.matchdict['relation_id'] = "1"
+        apply_request_extensions(request)
+
+        inst = self._cut(root, request)
+        response = inst.read_relation()
+
+        self.assertEqual(request.response.status, "200 OK")
+        self.assertEqual(response, {'relation_id': 1, 'members': [2, 3, 4]})
+
+    def test_update_relation(self):
+        root = self.config.registry.content('Root')
+        root.relations_map[1] = (2, 3, 4)
+
+        request = testing.DummyRequest()
+        request.matchdict['relation_id'] = "1"
+        request.matchdict['rids'] = ("2", "3")
+        apply_request_extensions(request)
+
+        inst = self._cut(root, request)
+        response = inst.update_relation()
+
+        self.assertEqual(request.response.status, "202 Accepted")
+        self.assertEqual(response, {'relation_id': 1, 'members': [2, 3]})
+
+    def test_delete_relation(self):
+        root = self.config.registry.content('Root')
+        root.relations_map[1] = (2, 3, 4)
+
+        request = testing.DummyRequest()
+        request.matchdict['relation_id'] = "1"
+        apply_request_extensions(request)
+
+        inst = self._cut(root, request)
+        response = inst.delete_relation()
+
+        self.assertEqual(request.response.status, "202 Accepted")
+        self.assertEqual(response, {'deleted': 1})
+
+    def test_list_contained_relations(self):
+        root = self.config.registry.content('Root')
+
+        root['wall'] = wall = Dummy(rid=2)
+        wall['collection1'] = collection1 = Dummy(rid=3)
+        wall['collection2'] = collection2 = Dummy(rid=4)
+        collection1['card1'] = Dummy(rid=11)
+        collection2['card2'] = Dummy(rid=12)
+        collection2['card3'] = Dummy(rid=13)
+
+        root.relations_map[1] = (11, 12)
+        root.relations_map[2] = (11, 13)
+        root.relations_map[3] = (11, 12, 13)
+
+        request = testing.DummyRequest()
+        request.matchdict['rid'] = "2"
+        apply_request_extensions(request)
+
+        inst = self._cut(root, request)
+        response = inst.list_contained_relations()
+
+        self.assertEqual(request.response.status, "200 OK")
+        self.assertIn({'relation_id': 1, 'members': [11, 12]}, response)
+        self.assertEqual(len(response), 3)  # 3 relations
 
 
 # class APIViewFunctionalTests(TestCase):

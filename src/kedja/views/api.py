@@ -5,7 +5,7 @@ from arche.content import ADD
 from arche.content import DELETE
 from colander_jsonschema import convert
 from pyramid.decorator import reify
-from pyramid.httpexceptions import HTTPForbidden
+from pyramid.httpexceptions import HTTPForbidden, HTTPBadRequest
 from pyramid.httpexceptions import HTTPNotFound
 from pyramid.traversal import find_root
 from pyramid.view import view_config
@@ -122,6 +122,80 @@ class APIView(BaseView):
         converted = convert(schema)
         return converted
 
+    @view_config(route_name='api_create_relation', request_method='POST')
+    def create_relation(self):
+        rids = []
+        for x in self.request.matchdict['rids']:
+            # Just to make sure
+            resource = self.get_resource(x)
+            rids.append(resource.rid)
+        self.request.response.status = 201  # Created
+
+        try:
+            return {'relation_id': self.root.relations_map.create(rids)}
+        except ValueError:
+            raise HTTPBadRequest("Refusing to create relation since it already seem to exist. Members: %s" % ", ".join(rids))
+
+    def get_relation(self, relation_id):
+        relation_id = relation_id
+        try:
+            relation_id = int(relation_id)
+        except ValueError:
+            raise HTTPBadRequest("Supplied relation_id is not an integer")
+        try:
+            return self.root.relations_map[relation_id]
+        except KeyError:
+            raise HTTPNotFound("No such relation")
+
+    @view_config(route_name='api_read_relation', request_method='GET')
+    def read_relation(self):
+        relation_id = self.request.matchdict['relation_id']
+        # Validate, check int possible etc
+        relation = self.get_relation(relation_id)
+        return {'relation_id': int(relation_id), 'members': list(relation)}
+
+    @view_config(route_name='api_update_relation', request_method='PUT')
+    def update_relation(self):
+        try:
+            relation_id = int(self.request.matchdict['relation_id'])
+        except ValueError:
+            raise HTTPBadRequest("Supplied relation_id is not an integer")
+        try:
+            rids = [int(x) for x in self.request.matchdict['rids']]
+        except ValueError as exc:
+            raise HTTPBadRequest(exc)
+        try:
+            self.root.relations_map[relation_id] = rids
+        except ValueError as exc:
+            raise HTTPBadRequest(exc)
+        self.request.response.status = 202  # Accepted
+        return {'relation_id': int(relation_id), 'members': list(rids)}
+
+    @view_config(route_name='api_delete_relation', request_method='DELETE')
+    def delete_relation(self):
+        try:
+            relation_id = int(self.request.matchdict['relation_id'])
+        except ValueError:
+            raise HTTPBadRequest("Supplied relation_id is not an integer")
+        try:
+            del self.root.relations_map[relation_id]
+        except KeyError:
+            raise HTTPNotFound("No such relation")
+        self.request.response.status = 202  # Accepted
+        return {'deleted': relation_id}
+
+    @view_config(route_name='api_list_relations', request_method='GET')
+    def list_contained_relations(self):
+        resource = self.get_resource(self.request.matchdict['rid'])
+        #import pdb;pdb.set_trace()
+        contained_rids = self.root.rid_map.contained_rids(resource)
+        results = []
+        for relation_id in self.root.relations_map.find_relevant_relation_ids([resource.rid] + list(contained_rids)):
+            results.append(
+                {'relation_id': relation_id, 'members': list(self.root.relations_map[relation_id])}
+            )
+        return results
+
 
 def includeme(config):
     # Create
@@ -139,9 +213,13 @@ def includeme(config):
     # Schema-definitions - Update
     config.add_route('api_update_schema', '/api/schema/update/{rid}')
     # Create relation
-    # FIXME
+    config.add_route('api_create_relation', '/api/create_relation/*rids')
+    # Read relation
+    config.add_route('api_read_relation', '/api/read_relation/{relation_id}')
     # Update relation
-
-    # Remove relation
-
+    config.add_route('api_update_relation', '/api/update_relation/{relation_id}*rids')
+    # Delete relation
+    config.add_route('api_delete_relation', '/api/delete_relation/{relation_id}')
+    # List all contained relations
+    config.add_route('api_list_relations', '/api/list_contained_relations/{rid}')
     config.scan(__name__)

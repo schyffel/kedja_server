@@ -53,3 +53,11 @@ class RelationsTests(TestCase):
         self.assertEqual(map.find_relations(3), {1, 2})
         self.assertEqual(map.find_relations(2, 3), {1, 2})
         self.assertEqual(map.find_relations(1, 2), {1})
+
+    def test_find_relevant_relation_ids(self):
+        map = self._cut()
+        map[1] = (1, 2, 3)
+        map[2] = (2, 3)
+        self.assertEqual(map.find_relevant_relation_ids(1), {1})
+        self.assertEqual(map.find_relevant_relation_ids(2), {1, 2})
+        self.assertEqual(map.find_relevant_relation_ids(4), set())
