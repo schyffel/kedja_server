@@ -43,6 +43,7 @@ class APIViewUnitTests(TestCase):
         request = testing.DummyRequest(method='POST')
         request.matchdict['type_name'] = 'Dummy'
         request.matchdict['parent_rid'] = 1  # Root
+        apply_request_extensions(request)
         inst = self._cut(root, request)
         response = inst.create()
         self.assertIsInstance(response, Dummy)
