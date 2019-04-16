@@ -187,7 +187,6 @@ class APIView(BaseView):
     @view_config(route_name='api_list_relations', request_method='GET')
     def list_contained_relations(self):
         resource = self.get_resource(self.request.matchdict['rid'])
-        #import pdb;pdb.set_trace()
         contained_rids = self.root.rid_map.contained_rids(resource)
         results = []
         for relation_id in self.root.relations_map.find_relevant_relation_ids([resource.rid] + list(contained_rids)):
