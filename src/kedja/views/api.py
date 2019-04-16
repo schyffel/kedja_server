@@ -195,6 +195,16 @@ class APIView(BaseView):
             )
         return results
 
+    @view_config(route_name='api_create', request_method='OPTIONS')
+    @view_config(route_name='api_update', request_method='OPTIONS')
+    @view_config(route_name='api_delete', request_method='OPTIONS')
+    @view_config(route_name='api_create_relation', request_method='OPTIONS')
+    @view_config(route_name='api_update_relation', request_method='OPTIONS')
+    @view_config(route_name='api_delete_relation', request_method='OPTIONS')
+    def preflight_options_requests(self):
+        # FIXME: Send a debug message?
+        return {}
+
 
 def includeme(config):
     # Create
