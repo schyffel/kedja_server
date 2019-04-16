@@ -14,7 +14,8 @@ from pyramid.view import view_defaults
 from kedja.views.base import BaseView
 
 
-@view_defaults(renderer='json')
+# FIXME: Experiment with cache setting?
+@view_defaults(renderer='json', http_cache=0)
 class APIView(BaseView):
 
     def get_resource(self, rid):
@@ -50,6 +51,11 @@ class APIView(BaseView):
         new_res = self.content(type_name)
         new_res.rid = self.root.rid_map.new_rid()
         parent.add(str(new_res.rid), new_res)
+        controls = self.request.params.items()
+        appstruct = peppercorn.parse(controls)
+        # Note: The mutator API will probably change!
+        with self.request.get_mutator(new_res) as mutator:
+            mutator.update(appstruct)
         self.request.response.status = 201  # Created
         return new_res
 
