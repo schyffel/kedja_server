@@ -40,7 +40,7 @@ class APIViewUnitTests(TestCase):
 
     def test_create(self):
         root = self.config.registry.content('Root')
-        request = testing.DummyRequest(method='POST')
+        request = testing.DummyRequest(method='POST', params={'title': 'Hello'})
         request.matchdict['type_name'] = 'Dummy'
         request.matchdict['parent_rid'] = 1  # Root
         apply_request_extensions(request)
