@@ -3,6 +3,7 @@ from arche.content import VIEW
 from arche.content import EDIT
 from arche.content import ADD
 from arche.content import DELETE
+from colander import Invalid
 from colander_jsonschema import convert
 from pyramid.decorator import reify
 from pyramid.httpexceptions import HTTPForbidden, HTTPBadRequest
@@ -55,7 +56,11 @@ class APIView(BaseView):
         appstruct = peppercorn.parse(controls)
         # Note: The mutator API will probably change!
         with self.request.get_mutator(new_res) as mutator:
-            mutator.update(appstruct)
+            try:
+                mutator.update(appstruct)
+            except Invalid as exc:
+                self.request.response.status = 400
+                return exc.asdict(translate=self.request.localizer.translate)
         self.request.response.status = 201  # Created
         return new_res
 
@@ -79,7 +84,11 @@ class APIView(BaseView):
         appstruct = peppercorn.parse(controls)
         # Note: The mutator API will probably change!
         with self.request.get_mutator(resource) as mutator:
-            changed = mutator.update(appstruct)
+            try:
+                changed = mutator.update(appstruct)
+            except Invalid as exc:
+                self.request.response.status = 400
+                return exc.asdict(translate=self.request.localizer.translate)
         self.request.response.status = 202  # Accepted
         return {'changed': list(changed)}
 
