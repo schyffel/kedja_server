@@ -52,7 +52,7 @@ class APIView(BaseView):
         new_res = self.content(type_name)
         new_res.rid = self.root.rid_map.new_rid()
         parent.add(str(new_res.rid), new_res)
-        controls = self.request.params.items()
+        controls = list(self.request.params.items())
         print ("api_create params: ", controls)
         appstruct = peppercorn.parse(controls)
         # Note: The mutator API will probably change!
