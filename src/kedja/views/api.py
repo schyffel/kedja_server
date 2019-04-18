@@ -57,11 +57,7 @@ class APIView(BaseView):
         appstruct = peppercorn.parse(controls)
         # Note: The mutator API will probably change!
         with self.request.get_mutator(new_res) as mutator:
-            try:
-                mutator.update(appstruct)
-            except Invalid as exc:
-                self.request.response.status = 400
-                return exc.asdict(translate=self.request.localizer.translate)
+            mutator.update(appstruct)
         self.request.response.status = 201  # Created
         return new_res
 
@@ -85,11 +81,7 @@ class APIView(BaseView):
         appstruct = peppercorn.parse(controls)
         # Note: The mutator API will probably change!
         with self.request.get_mutator(resource) as mutator:
-            try:
-                changed = mutator.update(appstruct)
-            except Invalid as exc:
-                self.request.response.status = 400
-                return exc.asdict(translate=self.request.localizer.translate)
+            changed = mutator.update(appstruct)
         self.request.response.status = 202  # Accepted
         return {'changed': list(changed)}
 
