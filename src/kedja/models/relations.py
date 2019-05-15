@@ -66,7 +66,7 @@ class RelationMap(Persistent):
         relation_id = None
         js_maxint = 2**53-1
         while not relation_id:  # We don't like 0 either
-            relation_id = randrange(js_maxint, -js_maxint)
+            relation_id = randrange(-js_maxint, js_maxint)
             if relation_id in self.relation_to_rids: # pragma: no cover
                 relation_id = None
         return relation_id
