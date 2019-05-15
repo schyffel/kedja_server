@@ -5,6 +5,7 @@ from zope.interface import implementer
 
 from kedja import _
 from kedja.interfaces import IWall
+from kedja.models.relations import RelationMap
 from kedja.resources.mixins import JSONRenderable
 
 
@@ -20,6 +21,7 @@ class Wall(Folder, JSONRenderable):
 
     def __init__(self, **kw):
         super().__init__(**kw)
+        self.relations_map = RelationMap()
         self.order = ()  # Enable ordering
 
 
