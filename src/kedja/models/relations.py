@@ -64,8 +64,9 @@ class RelationMap(Persistent):
             In the unlikely case that the same ID would be used, a transaction error will occur.
         """
         relation_id = None
+        js_maxint = 2**53-1
         while not relation_id:  # We don't like 0 either
-            relation_id = randrange(self.family.minint, self.family.maxint)
+            relation_id = randrange(js_maxint, -js_maxint)
             if relation_id in self.relation_to_rids: # pragma: no cover
                 relation_id = None
         return relation_id
