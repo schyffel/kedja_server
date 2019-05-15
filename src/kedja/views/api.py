@@ -142,7 +142,7 @@ class APIView(BaseView):
         try:
             return {'relation_id': self.root.relations_map.create(rids)}
         except ValueError:
-            raise HTTPBadRequest("Refusing to create relation since it already seem to exist. Members: %s" % ", ".join(rids))
+            raise HTTPBadRequest("Refusing to create relation since it already seem to exist. Members: %s" % ", ".join([str(x) for x in rids]))
 
     def get_relation(self, relation_id):
         relation_id = relation_id
