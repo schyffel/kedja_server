@@ -3,7 +3,7 @@ from arche.content import VIEW
 from arche.content import EDIT
 from arche.content import ADD
 from arche.content import DELETE
-from colander import Invalid
+from arche.interfaces import IResource
 from colander_jsonschema import convert
 from pyramid.decorator import reify
 from pyramid.httpexceptions import HTTPForbidden, HTTPBadRequest
@@ -211,6 +211,65 @@ class APIView(BaseView):
     @view_config(route_name='api_delete_relation', request_method='OPTIONS')
     def preflight_options_requests(self):
         # FIXME: Send a debug message?
+        return {}
+
+
+@view_defaults(context=IResource, renderer='json')
+class RestAPI(BaseView):
+
+    @reify
+    def root(self):
+        return find_root(self.context)
+
+    @view_config(request_method='POST', permission_type=ADD)
+    def create(self):
+        """ Create a content type at 'rid'.
+        """
+        content = self.request.registry.content
+        type_name = self.request.GET.get('type_name', None)
+        if type_name not in content:
+            raise HTTPNotFound("No such type: %s" % type_name)
+        new_res = content(type_name)
+        new_res.rid = self.root.rid_map.new_rid()
+        self.context.add(str(new_res.rid), new_res)
+        controls = list(self.request.POST.items())
+        print ("api_create params: ", controls)
+        appstruct = peppercorn.parse(controls)
+        # Note: The mutator API will probably change!
+        with self.request.get_mutator(new_res) as mutator:
+            mutator.update(appstruct)
+        self.request.response.status = 201  # Created
+        return new_res
+
+    @view_config(request_method='GET', permission_type=VIEW)
+    def read(self):
+        return self.context
+
+    @view_config(request_method='PUT', permission_type=EDIT)
+    def update(self):
+        controls = self.request.params.items()
+        appstruct = peppercorn.parse(controls)
+        # Note: The mutator API will probably change!
+        with self.request.get_mutator(self.context) as mutator:
+            changed = mutator.update(appstruct)
+        self.request.response.status = 202  # Accepted
+        return {'changed': list(changed)}
+
+    @view_config(request_method='DELETE', permission_type=DELETE)
+    def delete(self):
+        delete_rid = self.context.rid
+        parent = self.context.__parent__
+        del parent[self.context.__name__]
+        self.request.response.status = 202  # Accepted
+        return {'deleted': delete_rid}
+
+    @view_config(name='list', request_method='GET', permission_type=VIEW)
+    def list(self):
+        # FIXME: correct permission check
+        return list(self.context.values())
+
+    @view_config(request_method='OPTIONS')
+    def preflight_check(self):
         return {}
 
 
