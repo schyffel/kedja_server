@@ -5,7 +5,6 @@ from arche.objectmap.rid_map import ResourceIDMap
 from zope.interface import implementer
 
 from kedja.resources.mixins import JSONRenderable
-from kedja.models.relations import RelationMap
 from kedja.interfaces import IRoot
 from kedja import _
 
@@ -26,7 +25,6 @@ class Root(Folder, JSONRenderable):
         super().__init__()
         self.rid = 1
         self.rid_map = ResourceIDMap(self)
-        self.relations_map = RelationMap()
 
 
 RootContent = ContentType(factory=Root, schema=RootSchema, title=_("Root"))
