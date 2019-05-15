@@ -19,8 +19,8 @@ class CollectionSchema(colander.Schema):
 class Collection(Folder, JSONRenderable):
 
     def __init__(self, **kw):
-        self.order = ()  # Enable ordering
         super().__init__(**kw)
+        self.order = ()  # Enable ordering
 
 
 CollectionContent = ContentType(factory=Collection, schema=CollectionSchema, title=_("Collection"))

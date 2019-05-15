@@ -19,8 +19,8 @@ class WallSchema(colander.Schema):
 class Wall(Folder, JSONRenderable):
 
     def __init__(self, **kw):
-        self.order = ()  # Enable ordering
         super().__init__(**kw)
+        self.order = ()  # Enable ordering
 
 
 WallContent = ContentType(factory=Wall, schema=WallSchema, title=_("Wall"))

@@ -19,8 +19,8 @@ class CardSchema(colander.Schema):
 class Card(Folder, JSONRenderable):
 
     def __init__(self, **kw):
-        self.order = ()  # Enable ordering
         super().__init__(**kw)
+        self.order = ()  # Enable ordering
 
 
 CardContent = ContentType(factory=Card, schema=CardSchema, title=_("Card"))
