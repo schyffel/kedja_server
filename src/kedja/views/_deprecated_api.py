@@ -11,6 +11,7 @@ from pyramid.view import view_config
 from pyramid.view import view_defaults
 
 from kedja.views.base import BaseView
+from kedja.views.api import HelperMixin
 
 
 # FIXME: Experiment with cache setting?
