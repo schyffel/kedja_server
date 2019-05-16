@@ -216,3 +216,4 @@ def includeme(config):
     config.add_route('api_delete_relation', '/api/delete_relation/{relation_id}')
     # List all contained relations
     config.add_route('api_list_relations', '/api/list_contained_relations/{rid}')
+    config.scan(__name__)
