@@ -12,7 +12,8 @@ from kedja.resources.mixins import JSONRenderable
 class WallSchema(colander.Schema):
     title = colander.SchemaNode(
         colander.String(),
-        title = _("Title"),
+        title=_("Title"),
+        missing="- Untitled- ",
     )
 
 

@@ -11,7 +11,8 @@ from kedja.resources.mixins import JSONRenderable
 class CardSchema(colander.Schema):
     title = colander.SchemaNode(
         colander.String(),
-        title = _("Title"),
+        title=_("Title"),
+        missing="- Untitled- ",
     )
 
 

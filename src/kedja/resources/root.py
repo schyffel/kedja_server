@@ -12,8 +12,9 @@ from kedja import _
 class RootSchema(colander.Schema):
     title = colander.SchemaNode(
         colander.String(),
-        title = _("Title"),
+        title=_("Title"),
         validator=colander.Length(min=5, max=100),
+        missing="- Untitled- ",
     )
 
 
