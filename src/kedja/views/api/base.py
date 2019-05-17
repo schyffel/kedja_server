@@ -128,3 +128,12 @@ class BaseResponseSchema(colander.Schema):
     type_name = colander.SchemaNode(
         colander.String(),
     )
+
+
+class ChangedResponseSchema(colander.Schema):
+    changed = colander.SchemaNode(
+        colander.Sequence(),
+        colander.SchemaNode(
+            colander.String()
+        )
+    )

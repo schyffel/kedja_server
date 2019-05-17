@@ -28,7 +28,8 @@ class UpdateWallSchema(ResourceSchema, CreateWallSchema):
 
 response_schemas = {
     '200': ResponseSchema(description='Return value'),
-    '202': ResponseSchema(description='Return value')
+    '202': ResponseSchema(description='Return value'),
+    '201': WallBodySchema(),
 }
 
 
@@ -67,5 +68,5 @@ class WallsAPI(ResourceAPIBase):
         appstruct = self.get_json_appstruct()
         # Note: The mutator API will probably change!
         with self.request.get_mutator(new_res) as mutator:
-            changed = mutator.update(appstruct)
-        return {'changed': list(changed)}
+            mutator.update(appstruct)
+        return new_res
