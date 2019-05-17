@@ -4,8 +4,8 @@ from cornice.validators import colander_validator
 from kedja.resources.wall import WallSchema
 
 from kedja.views.api.base import BaseResponseSchema
+from kedja.views.api.base import ResourceSchema
 from kedja.views.api.base import ResourceAPIBase
-from kedja.views.api.base import RIDPathSchema
 
 
 class WallBodySchema(BaseResponseSchema):
@@ -15,6 +15,15 @@ class WallBodySchema(BaseResponseSchema):
 class ResponseSchema(colander.Schema):
     title = "Wall"
     body = WallBodySchema()
+
+
+class CreateWallSchema(colander.Schema):
+    title = "Create a new wall"
+    body = WallSchema(description="JSON payload")
+
+
+class UpdateWallSchema(ResourceSchema, CreateWallSchema):
+    title = "Update a specific wall"
 
 
 response_schemas = {
@@ -32,23 +41,24 @@ class WallsAPI(ResourceAPIBase):
     #def __acl__(self):
     #    return [(Allow, Everyone, 'everything')]
 
-    @view(validators=('validate_rid', colander_validator), schema=RIDPathSchema())
+    @view(validators=('validate_rid', colander_validator), schema=ResourceSchema())
     def get(self):
         resource = self.base_get()
         # FIXME: Check type
         return resource
 
-    @view(validators=('validate_rid', colander_validator), schema=RIDPathSchema())
+    @view(validators=('validate_rid', colander_validator), schema=UpdateWallSchema())
     def put(self):
         return self.base_put()
 
-    @view(validators=('validate_rid', colander_validator), schema=RIDPathSchema())
+    @view(validators=('validate_rid', colander_validator), schema=ResourceSchema())
     def delete(self):
         return self.base_delete()
 
     def collection_get(self):
         return list(self.context.values())
 
+    @view(schema=CreateWallSchema())
     def collection_post(self):
         new_res = self.request.registry.content("Wall")
         new_res.rid = self.root.rid_map.new_rid()

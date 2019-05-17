@@ -117,6 +117,10 @@ class ResourceSchema(colander.Schema):
     path = RIDPathSchema()
 
 
+class SubResourceSchema(colander.Schema):
+    path = SubRIDPathSchema()
+
+
 class BaseResponseSchema(colander.Schema):
     rid = colander.SchemaNode(
         colander.Int(),
