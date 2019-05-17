@@ -79,6 +79,10 @@ class ResourceAPIBase(object):
         parent.remove(resource.__name__)
         return {'removed': rid}
 
+    def options(self):
+        # FIXME:
+        return {}
+
 
 class ContainedAPI(ResourceAPIBase):
 

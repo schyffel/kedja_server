@@ -13,3 +13,7 @@ from kedja.views.api.base import SubRIDPathSchema, ContainedAPI
           factory='kedja.root_factory')
 class ContainedCollectionsAPI(ContainedAPI):
     create_type = 'Collection'
+
+    def options(self):
+        # FIXME:
+        return {}

@@ -73,3 +73,7 @@ class WallsAPI(ResourceAPIBase):
         with self.request.get_mutator(new_res) as mutator:
             mutator.update(appstruct)
         return new_res
+
+    def options(self):
+        # FIXME:
+        return {}
