@@ -6,8 +6,11 @@ from kedja.views.api.base import ResourceAPIBase, ResourceSchema
 
 
 # Cornice doesn't respect pyramids root factory - beware!
-@resource(path='/api/1/rid/{rid}', schema=ResourceSchema(), tags=['Any resource'],
-                  validators=(colander_validator, 'validate_rid'), factory='kedja.root_factory')
+@resource(path='/api/1/rid/{rid}',
+          schema=ResourceSchema(),
+          tags=['Any resource'],
+          cors_origins=('*',),
+          validators=(colander_validator, 'validate_rid'), factory='kedja.root_factory')
 class ResourceAPI(ResourceAPIBase):
     """ Resources """
 

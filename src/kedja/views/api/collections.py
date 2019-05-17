@@ -9,6 +9,7 @@ from kedja.views.api.base import SubRIDPathSchema, ContainedAPI
           tags=['Collections'],
           schema=SubRIDPathSchema(),
           validators=(colander_validator,),
+          cors_origins=('*',),
           factory='kedja.root_factory')
 class ContainedCollectionsAPI(ContainedAPI):
     create_type = 'Collection'
