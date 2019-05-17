@@ -9,5 +9,7 @@ def appmaker(zodb_root, request):
         return zodb_root['app_root']
     except KeyError:
         logger.info("Creating root")
-        zodb_root['app_root'] = root = request.registry.content.create('Root')
+        cf = request.registry.content
+        zodb_root['app_root'] = root = cf('Root')
+        root['users'] = cf('Users')
         return root

@@ -10,3 +10,9 @@ class ICollection(IFolder):
 
 class IWall(IFolder):
     pass
+
+class IUsers(IFolder):
+    pass
+
+class IUser(IFolder):
+    pass
