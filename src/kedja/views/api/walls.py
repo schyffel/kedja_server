@@ -1,10 +1,30 @@
+import colander
 from cornice.resource import resource, view
 from cornice.validators import colander_validator
+from kedja.resources.wall import WallSchema
 
-from kedja.views.api.base import ResourceAPIBase, RIDPathSchema
+from kedja.views.api.base import BaseResponseSchema
+from kedja.views.api.base import ResourceAPIBase
+from kedja.views.api.base import RIDPathSchema
+
+
+class WallBodySchema(BaseResponseSchema):
+    data = WallSchema()
+
+
+class ResponseSchema(colander.Schema):
+    title = "Wall"
+    body = WallBodySchema()
+
+
+response_schemas = {
+    '200': ResponseSchema(description='Return value'),
+    '202': ResponseSchema(description='Return value')
+}
 
 
 @resource(path='/api/1/walls/{rid}', collection_path='/api/1/walls',
+            response_schemas=response_schemas,
           tags=['Walls'], factory='kedja.root_factory')
 class WallsAPI(ResourceAPIBase):
     """ Resources """
