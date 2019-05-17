@@ -7,7 +7,6 @@ class ResourceAPIBase(object):
     def __init__(self, request, root=None):
         self.request = request
         self.root = root
-        import pdb;pdb.set_trace()
         self._lookup_cache = {}
 
     def get_resource(self, rid):
