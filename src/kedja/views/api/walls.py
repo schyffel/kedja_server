@@ -27,9 +27,9 @@ class UpdateWallSchema(ResourceSchema, CreateWallSchema):
 
 
 response_schemas = {
-    '200': ResponseSchema(description='Return value'),
-    '202': ResponseSchema(description='Return value'),
-    '201': WallBodySchema(),
+    '200': ResponseSchema(description='Return resource'),
+    '202': ResponseSchema(description='Return resource'),
+    '201': ResponseSchema(description='Return resource'),
 }
 
 
