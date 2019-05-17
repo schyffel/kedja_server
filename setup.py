@@ -18,8 +18,8 @@ requires = [
     'ZODB3',
     'arche',
     'peppercorn',
-  #  'cornice',
-  #  'cornice_swagger',
+    'cornice',
+    'cornice_swagger',
     'colander',
     'colander_jsonschema',
 ]

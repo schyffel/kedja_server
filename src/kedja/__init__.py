@@ -24,6 +24,9 @@ def main(global_config, **settings):
         config.include('pyramid_zodbconn')
         config.set_root_factory(root_factory)
         config.include('pyramid_chameleon')
+        # Cornice
+        config.include('cornice')
+        config.include('cornice_swagger')
         # Arche modules - note: will change!
         config.include('arche.predicates')
         config.include('arche.request_methods')
