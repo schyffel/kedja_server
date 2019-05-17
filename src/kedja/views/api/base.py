@@ -2,7 +2,8 @@ from json import JSONDecodeError
 from logging import getLogger
 
 import colander
-
+from pyramid.decorator import reify
+from pyramid.traversal import find_root
 
 logger = getLogger(__name__)
 
@@ -13,6 +14,10 @@ class ResourceAPIBase(object):
         self.request = request
         self.context = context
         self._lookup_cache = {}
+
+    @reify
+    def root(self):
+        return find_root(self.context)
 
     def get_resource(self, rid):
         if isinstance(rid, str):
