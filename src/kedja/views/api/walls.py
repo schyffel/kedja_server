@@ -54,10 +54,8 @@ class WallsAPI(ResourceAPIBase):
         new_res.rid = self.root.rid_map.new_rid()
         # Should be the root
         self.context.add(str(new_res.rid), new_res)
-        # FIXME: json decoding errors
-        appstruct = self.request.json_body
+        appstruct = self.get_json_appstruct()
         # Note: The mutator API will probably change!
         with self.request.get_mutator(new_res) as mutator:
             changed = mutator.update(appstruct)
-        # self.request.response.status = 202  # Accepted
         return {'changed': list(changed)}
