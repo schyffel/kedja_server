@@ -33,9 +33,12 @@ response_schemas = {
 }
 
 
-@resource(path='/api/1/walls/{rid}', collection_path='/api/1/walls',
-            response_schemas=response_schemas,
-          tags=['Walls'], factory='kedja.root_factory')
+@resource(path='/api/1/walls/{rid}',
+          collection_path='/api/1/walls',
+          response_schemas=response_schemas,
+          cors_origins=('*',),
+          tags=['Walls'],
+          factory='kedja.root_factory')
 class WallsAPI(ResourceAPIBase):
     """ Resources """
 
