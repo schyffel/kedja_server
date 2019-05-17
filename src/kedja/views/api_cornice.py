@@ -1,20 +1,19 @@
+import colander
 from cornice.resource import resource as cornice_resource
 from cornice.resource import view as cornice_view
+from cornice.validators import colander_validator
 
 
 class ResourceAPIBase(object):
 
-    def __init__(self, request, root=None):
+    def __init__(self, request, context=None):
         self.request = request
-        self.root = root
+        self.context = context
         self._lookup_cache = {}
 
     def get_resource(self, rid):
         if isinstance(rid, str):
-            try:
-                rid = int(rid)
-            except ValueError:
-                return self.error(self.request, "Supplied RID is not a valid integer", status=400)
+            rid = int(rid)
         return self._lookup_cache.setdefault(rid, self.request.root.rid_map.get_resource(rid))
 
     def error(self, request, msg="Doesn't exist", type='path', status=404):
@@ -65,9 +64,19 @@ class ResourceAPIBase(object):
         return {'removed': rid}
 
 
+class PathSchema(colander.Schema):
+    rid = colander.SchemaNode(
+        colander.Int(),
+    )
+
+
+class ResourceSchema(colander.Schema):
+    path = PathSchema()
+
+
 # Cornice doesn't respect pyramids root factory - beware!
-@cornice_resource(path='/api/1/rid/{rid}',
-                  validators=('validate_rid',), factory='kedja.root_factory')
+@cornice_resource(path='/api/1/rid/{rid}', schema=ResourceSchema(),
+                  validators=('validate_rid', colander_validator), factory='kedja.root_factory')
 class ResourceAPI(ResourceAPIBase):
     """ Resources """
 
@@ -155,25 +164,6 @@ class ContainedCollectionsAPI(ContainedAPI):
 class ContainedCardsAPI(ContainedAPI):
     pass
 
-
-
-"""
-URL	Description
-/api	The API entry point
-/api/:coll	A top-level collection named “coll”
-/api/:coll/:id	The resource “id” inside collection “coll”
-/api/:coll/:id/:subcoll	Sub-collection “subcoll” under resource “id”
-/api/:coll/:id/:subcoll/:subid	The resource “subid” inside “subcoll”
-GET	collection	Retrieve all resources in a collection
-GET	resource	Retrieve a single resource
-HEAD	collection	Retrieve all resources in a collection (header only)
-HEAD	resource	Retrieve a single resource (header only)
-POST	collection	Create a new resource in a collection
-PUT	resource	Update a resource
-PATCH	resource	Update a resource
-DELETE	resource	Delete a resource
-OPTIONS	any	Return available HTTP methods and other options
-"""
 
 def includeme(config):
     config.scan(__name__)
