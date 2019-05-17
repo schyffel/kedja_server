@@ -48,6 +48,8 @@ class ResourceAPIBase(object):
             return self.error(request, "No resource called %s" % type_name)
 
     def get_json_appstruct(self):
+        if not self.request.body:
+            return self.error(self.request, "no payload received", type='body', status=400)
         try:
             return self.request.json_body
         except JSONDecodeError as exc:
