@@ -56,14 +56,20 @@ class ResourceAPIBase(object):
             logger.debug("JSON decode error during PUT", exc_info=exc)
             return self.error(self.request, "JSON decode error: %s" % exc, type='body', status=400)
 
-    def base_get(self):
-        """ Get specific resource """
-        return self.get_resource(self.request.matchdict['rid'])
+    def check_type_name(self, resource, type_name=None):
+        if type_name is not None and type_name != getattr(resource, 'type_name', object()):
+            return self.error(self.request, "The RID is not a %r" % type_name, type='path', status=404)
 
-    def base_put(self):
-        """ Update a resource """
-        rid = self.request.matchdict['rid']
+    def base_get(self, rid, type_name=None):
+        """ Get specific resource. Validate type_name if specified. """
         resource = self.get_resource(rid)
+        self.check_type_name(resource, type_name=type_name)
+        return resource
+
+    def base_put(self, rid, type_name=None):
+        """ Update a resource """
+        resource = self.get_resource(rid)
+        self.check_type_name(resource, type_name=type_name)
         appstruct = self.get_json_appstruct()
         # Note: The mutator API will probably change!
         with self.request.get_mutator(resource) as mutator:
@@ -71,38 +77,30 @@ class ResourceAPIBase(object):
         # Log changed
         return resource
 
-    def base_delete(self):
+    def base_delete(self, rid, type_name=None):
         """ Delete a resource """
-        rid = self.request.matchdict['rid']
         resource = self.get_resource(rid)
+        self.check_type_name(resource, type_name=type_name)
         parent = resource.__parent__
         parent.remove(resource.__name__)
         return {'removed': rid}
 
-    def options(self):
-        # FIXME:
-        return {}
+    #def base_collection_get(self):
+    #    return list(self.context.values())
 
-
-class ContainedAPI(ResourceAPIBase):
-
-    @property
-    def create_type(self):
-        raise NotImplementedError("Must be set on subclass")
-
-    def collection_get(self):
-        return list(self.context.values())
-
-    def collection_post(self):
-        new_res = self.request.registry.content(self.create_type)
+    def base_collection_post(self, type_name, parent_rid=None, parent_type_name=None):
+        new_res = self.request.registry.content(type_name)
         new_res.rid = self.root.rid_map.new_rid()
+        #FIXME Check add permission within this parent
+        parent = self.base_get(parent_rid, type_name=parent_type_name)
         # Should be the root
-        self.context.add(str(new_res.rid), new_res)
+        parent.add(str(new_res.rid), new_res)
         appstruct = self.get_json_appstruct()
         # Note: The mutator API will probably change!
         with self.request.get_mutator(new_res) as mutator:
             changed = mutator.update(appstruct)
         return {'changed': list(changed)}
+
 
 
 class RIDPathSchema(colander.Schema):

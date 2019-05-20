@@ -18,13 +18,13 @@ class ResourceAPI(ResourceAPIBase):
     #    return [(Allow, Everyone, 'everything')]
 
     def get(self):
-        return self.base_get()
+        return self.base_get(self.request.matchdict['rid'])
 
     def put(self):
-        return self.base_put()
+        return self.base_put(self.request.matchdict['rid'])
 
     def delete(self):
-        return self.base_delete()
+        return self.base_delete(self.request.matchdict['rid'])
 
     def options(self):
         # FIXME:
