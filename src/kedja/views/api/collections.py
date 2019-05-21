@@ -19,8 +19,6 @@ class ContainedCollectionsAPI(ResourceAPIBase):
     parent_type_name = 'Wall'
 
     def get(self):
-        # wall = self.base_get(self.request.matchdict['rid'], type_name=self.parent_type_name)
-        # Do what with wall?
         return self.base_get(self.request.matchdict['subrid'], type_name=self.type_name)
 
     # FIXME schemas?
@@ -28,11 +26,12 @@ class ContainedCollectionsAPI(ResourceAPIBase):
         return self.base_put(self.request.matchdict['subrid'], type_name=self.type_name)
 
     def delete(self):
-        return self.base_delete()
+        return self.base_delete(self.request.matchdict['subrid'], type_name=self.type_name)
 
     @view(schema=ResourceAPISchema())
     def collection_get(self):
-        return list(self.context.values())
+        parent = self.base_get(self.request.matchdict['rid'], type_name=self.parent_type_name)
+        return self.base_collection_get(parent, type_name=self.type_name)
 
     @view(schema=ResourceAPISchema())
     def collection_post(self):

@@ -14,6 +14,7 @@ class ResourceAPIBase(object):
         self.request = request
         self.context = context
         self._lookup_cache = {}
+        request.content_type = 'application/json'  # To make Cornice happy, in case someone forgot that header
 
     @reify
     def root(self):
@@ -21,21 +22,20 @@ class ResourceAPIBase(object):
 
     def get_resource(self, rid):
         if isinstance(rid, str):
-            try:
-                rid = int(rid)
-            except ValueError:
-                return
+            # This should be catched by other means, for instance in the schema
+            rid = int(rid)
         return self._lookup_cache.setdefault(rid, self.root.rid_map.get_resource(rid))
 
     def error(self, request, msg="Doesn't exist", type='path', status=404):
         request.errors.add(type, msg)
         request.errors.status = status
 
-    def validate_rid(self, request, **kw):
-        """ RID must be numeric and exist. """
-        rid = self.request.matchdict['rid']
-        if self.get_resource(rid) is None:
-            return self.error(request, "No resource with rid %r exists" % rid)
+    # Use this?
+    # def validate_rid(self, request, **kw):
+    #     """ RID must be numeric and exist. """
+    #     rid = self.request.matchdict['rid']
+    #     if self.get_resource(rid) is None:
+    #         return self.error(request, "No resource with rid %r exists" % rid)
 
     def get_json_appstruct(self):
         if not self.request.body:
@@ -43,7 +43,7 @@ class ResourceAPIBase(object):
         try:
             return self.request.json_body
         except JSONDecodeError as exc:
-            logger.debug("JSON decode error during PUT", exc_info=exc)
+            logger.debug("JSON decode error", exc_info=exc)
             return self.error(self.request, "JSON decode error: %s" % exc, type='body', status=400)
 
     def check_type_name(self, resource, type_name=None):

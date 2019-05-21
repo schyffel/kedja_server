@@ -19,8 +19,6 @@ class ContainedCardsAPI(ResourceAPIBase):
     parent_type_name = 'Collection'
 
     def get(self):
-        # collection = self.base_get(self.request.matchdict['rid'], type_name=self.parent_type_name)
-        # DO what with collection?
         return self.base_get(self.request.matchdict['subrid'], type_name=self.type_name)
 
     # FIXME schemas?
@@ -32,7 +30,8 @@ class ContainedCardsAPI(ResourceAPIBase):
 
     @view(schema=ResourceAPISchema())
     def collection_get(self):
-        return list(self.context.values())
+        parent = self.base_get(self.request.matchdict['rid'], type_name=self.parent_type_name)
+        return self.base_collection_get(parent, type_name=self.type_name)
 
     @view(schema=ResourceAPISchema())
     def collection_post(self):

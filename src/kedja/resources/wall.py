@@ -13,7 +13,6 @@ class WallSchema(colander.Schema):
     title = colander.SchemaNode(
         colander.String(),
         title=_("Title"),
-        missing="- Untitled- ",
     )
 
 

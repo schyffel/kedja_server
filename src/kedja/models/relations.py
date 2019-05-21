@@ -5,6 +5,8 @@ from BTrees.OOBTree import OOSet
 from persistent import Persistent
 
 
+# FIXME: Might be smarter to have these as resources
+
 class RelationJSON(object):
 
     def __init__(self, relation_id, members=()):
@@ -12,7 +14,27 @@ class RelationJSON(object):
         self.members = list(members)
 
     def __json__(self, request):
+        return self.asdict()
+
+    def __str__(self):
+        return str(self.asdict())
+
+    def __repr__(self):
+        return '<Relation %r with %r>' % (self.relation_id, self.members)
+
+    def asdict(self):
         return {'relation_id': self.relation_id, 'members': self.members}
+
+    def __len__(self):
+        return len(self.members)
+
+    def __iter__(self):
+        return iter(self.asdict().items())
+
+    def __eq__(self, other):
+        if isinstance(other, RelationJSON):
+            return other.asdict() == self.asdict()
+        return other == self.asdict()
 
 
 class RelationMap(Persistent):
@@ -111,3 +133,6 @@ class RelationMap(Persistent):
 
     def keys(self):
         return self.relation_to_rids.keys()
+
+    def __len__(self):
+        return len(self.relation_to_rids)

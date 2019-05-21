@@ -17,7 +17,7 @@ class RelationSchema(colander.Schema):
         colander.SchemaNode(
             colander.Int(),
         ),
-        validator=colander.Range(2, 1000),
+        validator=colander.Length(2, 1000),
     )
 
 
@@ -38,7 +38,7 @@ class UpdateRelationAPISchema(colander.Schema):
           validators=(colander_validator,),
           cors_origins=('*',),
           factory='kedja.root_factory')
-class RelationsAPI(ResourceAPIBase):
+class RelationsAPIView(ResourceAPIBase):
     #type_name = 'Relation'
     parent_type_name = 'Wall'
 
@@ -51,7 +51,7 @@ class RelationsAPI(ResourceAPIBase):
 
     def get_relation(self, relation_id):
         relation = self.wall.relations_map.get_as_json(relation_id, None)
-        if not relation:
+        if relation is None:
             self.error(self.request, "No relation with relation_id %r" % relation_id)
         return relation
 
@@ -68,8 +68,9 @@ class RelationsAPI(ResourceAPIBase):
 
     def delete(self):
         relation_id = self.get_relation_id()
-        # FIXME
-        return self.base_delete()
+        # FIXME: Validation?
+        del self.wall.relations_map[relation_id]
+        return {'removed': relation_id}
 
     @view(schema=ResourceAPISchema())
     def collection_get(self):
