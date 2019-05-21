@@ -17,7 +17,9 @@ class UserSchema(colander.Schema):
         colander.String(),
         title = _("Last name"),
     )
-
+    def after_bind(self, node, kw):
+        """ Use this instead of deferred, since cornice can't handle schema binding. """
+        pass
 
 @implementer(IUser)
 class User(Folder, JSONRenderable):

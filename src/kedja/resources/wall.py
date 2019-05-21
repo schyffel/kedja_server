@@ -15,6 +15,10 @@ class WallSchema(colander.Schema):
         title=_("Title"),
     )
 
+    def after_bind(self, node, kw):
+        """ Use this instead of deferred, since cornice can't handle schema binding. """
+        pass
+
 
 @implementer(IWall)
 class Wall(Folder, JSONRenderable):

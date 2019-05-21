@@ -15,6 +15,10 @@ class CollectionSchema(colander.Schema):
         missing="- Untitled- ",
     )
 
+    def after_bind(self, node, kw):
+        """ Use this instead of deferred, since cornice can't handle schema binding. """
+        pass
+
 
 @implementer(ICollection)
 class Collection(Folder, JSONRenderable):

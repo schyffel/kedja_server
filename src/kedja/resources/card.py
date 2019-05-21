@@ -15,6 +15,10 @@ class CardSchema(colander.Schema):
         missing="- Untitled- ",
     )
 
+    def after_bind(self, node, kw):
+        """ Use this instead of deferred, since cornice can't handle schema binding. """
+        pass
+
 
 @implementer(ICard)
 class Card(Folder, JSONRenderable):

@@ -16,7 +16,9 @@ class RootSchema(colander.Schema):
         validator=colander.Length(min=5, max=100),
         missing="- Untitled- ",
     )
-
+    def after_bind(self, node, kw):
+        """ Use this instead of deferred, since cornice can't handle schema binding. """
+        pass
 
 @implementer(IRoot)
 class Root(Folder, JSONRenderable):
