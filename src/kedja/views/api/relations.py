@@ -87,6 +87,9 @@ class RelationsAPI(ResourceAPIBase):
         return {}
 
 
+def includeme(config):
+    config.scan(__name__)
+
 
 # @view_defaults(context=IWall, name='relation', renderer='json')
 # class RelationsRestAPI(BaseView, HelperMixin):

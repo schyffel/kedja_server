@@ -1,4 +1,8 @@
 
 
 def includeme(config):
-    config.scan(__name__)
+    config.includeme('.cards')
+    config.includeme('.collections')
+    config.includeme('.relations')
+    config.includeme('.resource')
+    config.includeme('.walls')

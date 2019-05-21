@@ -41,3 +41,7 @@ class ContainedCollectionsAPI(ResourceAPIBase):
     def options(self):
         # FIXME:
         return {}
+
+
+def includeme(config):
+    config.scan(__name__)

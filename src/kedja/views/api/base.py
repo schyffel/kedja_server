@@ -25,7 +25,7 @@ class ResourceAPIBase(object):
                 rid = int(rid)
             except ValueError:
                 return
-        return self._lookup_cache.setdefault(rid, self.request.root.rid_map.get_resource(rid))
+        return self._lookup_cache.setdefault(rid, self.root.rid_map.get_resource(rid))
 
     def error(self, request, msg="Doesn't exist", type='path', status=404):
         request.errors.add(type, msg)
@@ -64,7 +64,7 @@ class ResourceAPIBase(object):
         # Note: The mutator API will probably change!
         with self.request.get_mutator(resource) as mutator:
             changed = mutator.update(appstruct)
-        # Log changed
+        # Log changed?
         return resource
 
     def base_delete(self, rid, type_name=None):
@@ -73,10 +73,16 @@ class ResourceAPIBase(object):
         self.check_type_name(resource, type_name=type_name)
         parent = resource.__parent__
         parent.remove(resource.__name__)
-        return {'removed': rid}
+        return {'removed': int(rid)}
 
-    #def base_collection_get(self):
-    #    return list(self.context.values())
+    def base_collection_get(self, parent, type_name=None):
+        results = []
+        for x in parent.values():
+            if type_name is None:
+                results.append(x)
+            elif getattr(x, 'type_name', object()) == type_name:
+                results.append(x)
+        return results
 
     def base_collection_post(self, type_name, parent_rid=None, parent_type_name=None):
         new_res = self.request.registry.content(type_name)
@@ -89,8 +95,8 @@ class ResourceAPIBase(object):
         # Note: The mutator API will probably change!
         with self.request.get_mutator(new_res) as mutator:
             changed = mutator.update(appstruct)
-        return {'changed': list(changed)}
-
+        # Log changed?
+        return new_res
 
 
 class RIDPathSchema(colander.Schema):

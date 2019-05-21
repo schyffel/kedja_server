@@ -42,7 +42,7 @@ response_schemas = {
           cors_origins=('*',),
           tags=['Walls'],
           factory='kedja.root_factory')
-class WallsAPI(ResourceAPIBase):
+class WallsAPIView(ResourceAPIBase):
     """ Resources """
     type_name = 'Wall'
     parent_type_name = 'Root'
@@ -62,8 +62,7 @@ class WallsAPI(ResourceAPIBase):
 
     @view(schema=None)
     def collection_get(self):
-        return list(self.context.values())
-
+        return self.base_collection_get(self.context, type_name=self.type_name)
 
     @view(schema=CreateWallSchema())
     def collection_post(self):
@@ -72,3 +71,7 @@ class WallsAPI(ResourceAPIBase):
     def options(self):
         # FIXME:
         return {}
+
+
+def includeme(config):
+    config.scan(__name__)
