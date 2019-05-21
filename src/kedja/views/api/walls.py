@@ -1,20 +1,21 @@
 import colander
-from cornice.resource import resource, view
+from cornice.resource import resource
+from cornice.resource import view
 from cornice.validators import colander_validator
-from kedja.resources.wall import WallSchema
 
-from kedja.views.api.base import BaseResponseSchema
-from kedja.views.api.base import ResourceSchema
+from kedja.resources.wall import WallSchema
+from kedja.views.api.base import BaseResponseAPISchema
+from kedja.views.api.base import ResourceAPISchema
 from kedja.views.api.base import ResourceAPIBase
 
 
-class WallBodySchema(BaseResponseSchema):
+class WallBodyAPISchema(BaseResponseAPISchema):
     data = WallSchema()
 
 
 class ResponseSchema(colander.Schema):
     title = "Wall"
-    body = WallBodySchema()
+    body = WallBodyAPISchema()
 
 
 class CreateWallSchema(colander.Schema):
@@ -22,7 +23,7 @@ class CreateWallSchema(colander.Schema):
     body = WallSchema(description="JSON payload")
 
 
-class UpdateWallSchema(ResourceSchema, CreateWallSchema):
+class UpdateWallAPISchema(ResourceAPISchema, CreateWallSchema):
     title = "Update a specific wall"
 
 
@@ -36,7 +37,7 @@ response_schemas = {
 @resource(path='/api/1/walls/{rid}',
           collection_path='/api/1/walls',
           response_schemas=response_schemas,
-          schema=ResourceSchema(),
+          schema=ResourceAPISchema(),
           validators=(colander_validator,),
           cors_origins=('*',),
           tags=['Walls'],
@@ -52,7 +53,7 @@ class WallsAPI(ResourceAPIBase):
     def get(self):
         return self.base_get(self.request.matchdict['rid'], type_name='Wall')
 
-    @view(schema=UpdateWallSchema())
+    @view(schema=UpdateWallAPISchema())
     def put(self):
         return self.base_put(self.request.matchdict['rid'], type_name='Wall')
 

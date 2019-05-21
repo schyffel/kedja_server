@@ -5,6 +5,16 @@ from BTrees.OOBTree import OOSet
 from persistent import Persistent
 
 
+class RelationJSON(object):
+
+    def __init__(self, relation_id, members=()):
+        self.relation_id = relation_id
+        self.members = list(members)
+
+    def __json__(self, request):
+        return {'relation_id': self.relation_id, 'members': self.members}
+
+
 class RelationMap(Persistent):
     family = family64
 
@@ -59,6 +69,16 @@ class RelationMap(Persistent):
     def get(self, relation_id, default=None):
         return self.relation_to_rids.get(relation_id, default)
 
+    def get_as_json(self, relation_id, default=None):
+        members = self.get(relation_id, None)
+        if members is not None:
+            return RelationJSON(relation_id, members)
+        return default
+
+    def get_all_as_json(self):
+        for k in self.keys():
+            yield self.get_as_json(k)
+
     def new_relation_id(self):
         """ Get an unused ID. It's not reserved in any way, so make sure to use it within the current transaction.
             In the unlikely case that the same ID would be used, a transaction error will occur.
@@ -88,3 +108,6 @@ class RelationMap(Persistent):
         for x in rids:
             found.update(self.find_relations(x))
         return found
+
+    def keys(self):
+        return self.relation_to_rids.keys()

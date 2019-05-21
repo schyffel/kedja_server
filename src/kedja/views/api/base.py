@@ -31,21 +31,11 @@ class ResourceAPIBase(object):
         request.errors.add(type, msg)
         request.errors.status = status
 
-    def validate_type_name(self, request, **kw):
-        type_name = request.matchdict.get('type_name', object())
-        if type_name not in request.registry.content:
-            return self.error(request, msg="'type_name' specified doesn't exist.")
-
     def validate_rid(self, request, **kw):
         """ RID must be numeric and exist. """
         rid = self.request.matchdict['rid']
         if self.get_resource(rid) is None:
             return self.error(request, "No resource with rid %r exists" % rid)
-
-    def validate_type_name(self, request, **kw):
-        type_name = request.matchdict['type_name']
-        if type_name not in request.registry.content:
-            return self.error(request, "No resource called %s" % type_name)
 
     def get_json_appstruct(self):
         if not self.request.body:
@@ -115,15 +105,25 @@ class SubRIDPathSchema(RIDPathSchema):
     )
 
 
-class ResourceSchema(colander.Schema):
+class RelationIDPathSchema(RIDPathSchema):
+    relation_id = colander.SchemaNode(
+        colander.Int(),
+    )
+
+
+class ResourceAPISchema(colander.Schema):
     path = RIDPathSchema()
 
 
-class SubResourceSchema(colander.Schema):
+class SubResourceAPISchema(colander.Schema):
     path = SubRIDPathSchema()
 
 
-class BaseResponseSchema(colander.Schema):
+class RelationAPISchema(colander.Schema):
+    path = RelationIDPathSchema()
+
+
+class BaseResponseAPISchema(colander.Schema):
     rid = colander.SchemaNode(
         colander.Int(),
     )
@@ -132,7 +132,7 @@ class BaseResponseSchema(colander.Schema):
     )
 
 
-class ChangedResponseSchema(colander.Schema):
+class ChangedResponseAPISchema(colander.Schema):
     changed = colander.SchemaNode(
         colander.Sequence(),
         colander.SchemaNode(

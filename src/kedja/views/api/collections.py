@@ -2,15 +2,15 @@ from cornice.resource import resource
 from cornice.validators import colander_validator
 from cornice.resource import view
 
-from kedja.views.api.base import SubResourceSchema
+from kedja.views.api.base import SubResourceAPISchema
 from kedja.views.api.base import ResourceAPIBase
-from kedja.views.api.base import ResourceSchema
+from kedja.views.api.base import ResourceAPISchema
 
 
 @resource(collection_path='/api/1/walls/{rid}/collections',
           path='/api/1/walls/{rid}/collections/{subrid}',  # This isn't used, but cornice needs  this path?
           tags=['Collections'],
-          schema=SubResourceSchema(),
+          schema=SubResourceAPISchema(),
           validators=(colander_validator,),
           cors_origins=('*',),
           factory='kedja.root_factory')
@@ -30,11 +30,11 @@ class ContainedCollectionsAPI(ResourceAPIBase):
     def delete(self):
         return self.base_delete()
 
-    @view(schema=ResourceSchema())
+    @view(schema=ResourceAPISchema())
     def collection_get(self):
         return list(self.context.values())
 
-    @view(schema=ResourceSchema())
+    @view(schema=ResourceAPISchema())
     def collection_post(self):
         return self.base_collection_post(self.type_name, parent_rid=self.request.matchdict['rid'], parent_type_name=self.parent_type_name)
 

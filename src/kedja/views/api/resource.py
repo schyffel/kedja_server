@@ -2,12 +2,13 @@
 from cornice.resource import resource
 from cornice.validators import colander_validator
 
-from kedja.views.api.base import ResourceAPIBase, ResourceSchema
+from kedja.views.api.base import ResourceAPIBase
+from kedja.views.api.base import ResourceAPISchema
 
 
 # Cornice doesn't respect pyramids root factory - beware!
 @resource(path='/api/1/rid/{rid}',
-          schema=ResourceSchema(),
+          schema=ResourceAPISchema(),
           tags=['Any resource'],
           cors_origins=('*',),
           validators=(colander_validator, 'validate_rid'), factory='kedja.root_factory')
