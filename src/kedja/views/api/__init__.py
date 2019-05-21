@@ -1,8 +1,8 @@
 
 
 def includeme(config):
-    config.includeme('.cards')
-    config.includeme('.collections')
-    config.includeme('.relations')
-    config.includeme('.resource')
-    config.includeme('.walls')
+    config.include('.cards')
+    config.include('.collections')
+    config.include('.relations')
+    config.include('.resource')
+    config.include('.walls')
