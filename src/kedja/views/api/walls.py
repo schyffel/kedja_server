@@ -72,6 +72,10 @@ class WallsAPIView(ResourceAPIBase):
         # FIXME:
         return {}
 
+    @view(schema=None)
+    def collection_options(self):
+        return self.options()
+
 
 def includeme(config):
     config.scan(__name__)

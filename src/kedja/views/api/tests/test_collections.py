@@ -210,3 +210,19 @@ class FunctionalCollectionsAPITests(TestCase):
         apply_request_extensions(request)
         self._fixture(request)
         app.post('/api/1/walls/2/collections', params=dumps({'title': 123}), status=400)
+
+    def test_options(self):
+        wsgiapp = self.config.make_wsgi_app()
+        app = TestApp(wsgiapp)
+        request = testing.DummyRequest()
+        apply_request_extensions(request)
+        self._fixture(request)
+        app.options('/api/1/walls/2/collections/3', status=200)
+
+    def test_collection_options(self):
+        wsgiapp = self.config.make_wsgi_app()
+        app = TestApp(wsgiapp)
+        request = testing.DummyRequest()
+        apply_request_extensions(request)
+        self._fixture(request)
+        app.options('/api/1/walls/2/collections', status=200)
