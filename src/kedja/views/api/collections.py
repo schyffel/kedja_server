@@ -2,9 +2,27 @@ from cornice.resource import resource
 from cornice.validators import colander_validator
 from cornice.resource import view
 
+from kedja.resources.collection import CollectionSchema
 from kedja.views.api.base import SubResourceAPISchema
 from kedja.views.api.base import ResourceAPIBase
 from kedja.views.api.base import ResourceAPISchema
+
+
+class CreateCollectonSchema(ResourceAPISchema):
+    title = "Create a new collection"
+    body = CollectionSchema(description="JSON payload")
+
+    def after_bind(self, node, kw):
+        """ Use this instead of deferred, since cornice can't handle schema binding. """
+        pass
+
+
+class UpdateCollectionAPISchema(SubResourceAPISchema, CreateCollectonSchema):
+    title = "Update a specific collection"
+
+    def after_bind(self, node, kw):
+        """ Use this instead of deferred, since cornice can't handle schema binding. """
+        pass
 
 
 @resource(collection_path='/api/1/walls/{rid}/collections',
@@ -19,9 +37,11 @@ class ContainedCollectionsAPI(ResourceAPIBase):
     parent_type_name = 'Wall'
 
     def get(self):
-        return self.base_get(self.request.matchdict['subrid'], type_name=self.type_name)
+        wall = self.base_get(self.request.matchdict['rid'], type_name=self.parent_type_name)
+        if wall:
+            return self.contained_get(wall, self.request.matchdict['subrid'], type_name=self.type_name)
 
-    # FIXME schemas?
+    @view(schema=UpdateCollectionAPISchema())
     def put(self):
         return self.base_put(self.request.matchdict['subrid'], type_name=self.type_name)
 
@@ -33,7 +53,7 @@ class ContainedCollectionsAPI(ResourceAPIBase):
         parent = self.base_get(self.request.matchdict['rid'], type_name=self.parent_type_name)
         return self.base_collection_get(parent, type_name=self.type_name)
 
-    @view(schema=ResourceAPISchema())
+    @view(schema=CreateCollectonSchema())
     def collection_post(self):
         return self.base_collection_post(self.type_name, parent_rid=self.request.matchdict['rid'], parent_type_name=self.parent_type_name)
 

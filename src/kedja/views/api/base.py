@@ -24,9 +24,15 @@ class ResourceAPIBase(object):
         if isinstance(rid, str):
             # This should be catched by other means, for instance in the schema
             rid = int(rid)
-        return self._lookup_cache.setdefault(rid, self.root.rid_map.get_resource(rid))
+        resource = self._lookup_cache.setdefault(rid, self.root.rid_map.get_resource(rid))
+        if resource is None:
+            self.error("No resource with RID %s" % rid, type='path', status=404)
+            return
+        return resource
 
-    def error(self, request, msg="Doesn't exist", type='path', status=404):
+    def error(self, msg="Doesn't exist", type='path', status=404, request=None):
+        if request is None:
+            request = self.request
         request.errors.add(type, msg)
         request.errors.status = status
 
@@ -39,22 +45,39 @@ class ResourceAPIBase(object):
 
     def get_json_appstruct(self):
         if not self.request.body:
-            return self.error(self.request, "no payload received", type='body', status=400)
+            self.error("no payload received", type='body', status=400)
+            return
         try:
             return self.request.json_body
         except JSONDecodeError as exc:
             logger.debug("JSON decode error", exc_info=exc)
-            return self.error(self.request, "JSON decode error: %s" % exc, type='body', status=400)
+            self.error("JSON decode error: %s" % exc, type='body', status=400)
+            return
 
     def check_type_name(self, resource, type_name=None):
-        if type_name is not None and type_name != getattr(resource, 'type_name', object()):
-            return self.error(self.request, "The RID is not a %r" % type_name, type='path', status=404)
+        type_ok = type_name is not None and type_name == getattr(resource, 'type_name', object())
+        if type_ok:
+            return True
+        self.error("The fetched resource is not a %r" % type_name, type='path', status=404)
+        return False
 
     def base_get(self, rid, type_name=None):
         """ Get specific resource. Validate type_name if specified. """
         resource = self.get_resource(rid)
-        self.check_type_name(resource, type_name=type_name)
-        return resource
+        if self.check_type_name(resource, type_name=type_name):
+            return resource
+
+    def contained_get(self, parent, rid, type_name=None):
+        """ Fetch a resource contained within parent. It wil simply check that the parent matches.
+            The name and the rid might not be equivalent."""
+        resource = self.base_get(rid, type_name=type_name)
+        if resource:
+            if resource.__parent__ == parent:
+                # All good
+                return resource
+            # Fail, wrong parent
+            self.error("%r is not contained within %r" % (resource, parent), type='path', status=404)
+            return
 
     def base_put(self, rid, type_name=None):
         """ Update a resource """
@@ -70,12 +93,14 @@ class ResourceAPIBase(object):
     def base_delete(self, rid, type_name=None):
         """ Delete a resource """
         resource = self.get_resource(rid)
-        self.check_type_name(resource, type_name=type_name)
-        parent = resource.__parent__
-        parent.remove(resource.__name__)
-        return {'removed': int(rid)}
+        if self.check_type_name(resource, type_name=type_name):
+            parent = resource.__parent__
+            parent.remove(resource.__name__)
+            return {'removed': int(rid)}
 
     def base_collection_get(self, parent, type_name=None):
+        if parent is None:
+            return
         results = []
         for x in parent.values():
             if type_name is None:

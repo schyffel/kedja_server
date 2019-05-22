@@ -2,9 +2,19 @@ from cornice.resource import resource
 from cornice.resource import view
 from cornice.validators import colander_validator
 
+from kedja.resources.card import CardSchema
 from kedja.views.api.base import ResourceAPIBase
 from kedja.views.api.base import SubResourceAPISchema
 from kedja.views.api.base import ResourceAPISchema
+
+
+class CreateCardSchema(ResourceAPISchema):
+    title = "Create a new card"
+    body = CardSchema(description="JSON payload")
+
+
+class UpdateCardAPISchema(SubResourceAPISchema, CreateCardSchema):
+    title = "Update a specific card"
 
 
 @resource(collection_path='/api/1/collections/{rid}/cards',
@@ -19,9 +29,11 @@ class ContainedCardsAPI(ResourceAPIBase):
     parent_type_name = 'Collection'
 
     def get(self):
-        return self.base_get(self.request.matchdict['subrid'], type_name=self.type_name)
+        collection = self.base_get(self.request.matchdict['rid'], type_name=self.parent_type_name)
+        if collection:
+            return self.contained_get(collection, self.request.matchdict['subrid'], type_name=self.type_name)
 
-    # FIXME schemas?
+    @view(schema=UpdateCardAPISchema)
     def put(self):
         return self.base_put(self.request.matchdict['subrid'], type_name=self.type_name)
 
@@ -33,7 +45,7 @@ class ContainedCardsAPI(ResourceAPIBase):
         parent = self.base_get(self.request.matchdict['rid'], type_name=self.parent_type_name)
         return self.base_collection_get(parent, type_name=self.type_name)
 
-    @view(schema=ResourceAPISchema())
+    @view(schema=CreateCardSchema())
     def collection_post(self):
         return self.base_collection_post(self.type_name, parent_rid=self.request.matchdict['rid'], parent_type_name=self.parent_type_name)
 

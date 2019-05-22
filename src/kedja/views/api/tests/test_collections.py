@@ -122,6 +122,22 @@ class FunctionalCollectionsAPITests(TestCase):
         response = app.get('/api/1/walls/2/collections/3', status=200)
         self.assertEqual(response.json_body, {'data': {}, 'rid': 3, 'type_name': 'Collection'})
 
+    def test_get_404_child(self):
+        wsgiapp = self.config.make_wsgi_app()
+        app = TestApp(wsgiapp)
+        request = testing.DummyRequest()
+        apply_request_extensions(request)
+        self._fixture(request)
+        app.get('/api/1/walls/2/collections/404', status=404)
+
+    def test_get_404_parent(self):
+        wsgiapp = self.config.make_wsgi_app()
+        app = TestApp(wsgiapp)
+        request = testing.DummyRequest()
+        apply_request_extensions(request)
+        self._fixture(request)
+        app.get('/api/1/walls/404/collections/3', status=404)
+
     def test_put(self):
         wsgiapp = self.config.make_wsgi_app()
         app = TestApp(wsgiapp)
@@ -130,6 +146,14 @@ class FunctionalCollectionsAPITests(TestCase):
         self._fixture(request)
         response = app.put('/api/1/walls/2/collections/3', params=dumps({'title': 'Hello world!'}), status=200)
         self.assertEqual({"type_name": "Collection", "rid": 3, "data": {"title": "Hello world!"}}, response.json_body)
+
+    def test_put_bad_data(self):
+        wsgiapp = self.config.make_wsgi_app()
+        app = TestApp(wsgiapp)
+        request = testing.DummyRequest()
+        apply_request_extensions(request)
+        self._fixture(request)
+        app.put('/api/1/walls/2/collections/3', params=dumps({'title': 123}), status=400)
 
     def test_delete(self):
         wsgiapp = self.config.make_wsgi_app()
@@ -140,6 +164,14 @@ class FunctionalCollectionsAPITests(TestCase):
         response = app.delete('/api/1/walls/2/collections/3', status=200)
         self.assertEqual({"removed": 3}, response.json_body)
 
+    def test_delete_404(self):
+        wsgiapp = self.config.make_wsgi_app()
+        app = TestApp(wsgiapp)
+        request = testing.DummyRequest()
+        apply_request_extensions(request)
+        self._fixture(request)
+        app.delete('/api/1/walls/2/collections/404', status=404)
+
     def test_collection_get(self):
         wsgiapp = self.config.make_wsgi_app()
         app = TestApp(wsgiapp)
@@ -148,6 +180,14 @@ class FunctionalCollectionsAPITests(TestCase):
         self._fixture(request)
         response = app.get('/api/1/walls/2/collections', status=200)
         self.assertEqual([{'data': {}, 'rid': 3, 'type_name': 'Collection'}], response.json_body)
+
+    def test_collection_get_404(self):
+        wsgiapp = self.config.make_wsgi_app()
+        app = TestApp(wsgiapp)
+        request = testing.DummyRequest()
+        apply_request_extensions(request)
+        self._fixture(request)
+        app.get('/api/1/walls/404/collections', status=404)
 
     def test_collection_post(self):
         wsgiapp = self.config.make_wsgi_app()
@@ -162,3 +202,11 @@ class FunctionalCollectionsAPITests(TestCase):
         self.assertEqual(len(keys), 1)
         new_rid = int(keys[0])
         self.assertEqual({'data': {'title': 'Hello world!'}, 'rid': new_rid, 'type_name': 'Collection'}, response.json_body)
+
+    def test_collection_post_bad_data(self):
+        wsgiapp = self.config.make_wsgi_app()
+        app = TestApp(wsgiapp)
+        request = testing.DummyRequest()
+        apply_request_extensions(request)
+        self._fixture(request)
+        app.post('/api/1/walls/2/collections', params=dumps({'title': 123}), status=400)

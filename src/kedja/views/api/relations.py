@@ -50,10 +50,11 @@ class RelationsAPIView(ResourceAPIBase):
         return int(self.request.matchdict['relation_id'])
 
     def get_relation(self, relation_id):
-        relation = self.wall.relations_map.get_as_json(relation_id, None)
-        if relation is None:
-            self.error(self.request, "No relation with relation_id %r" % relation_id)
-        return relation
+        if self.wall:
+            relation = self.wall.relations_map.get_as_json(relation_id, None)
+            if relation is None:
+                self.error("No relation with relation_id %r" % relation_id)
+            return relation
 
     def get(self):
         relation_id = self.get_relation_id()
@@ -63,25 +64,30 @@ class RelationsAPIView(ResourceAPIBase):
     def put(self):
         relation_id = self.get_relation_id()
         appstruct = self.get_json_appstruct()
-        self.wall.relations_map[relation_id] = appstruct['members']
-        return self.wall.relations_map.get_as_json(relation_id)
+        if self.wall:
+            self.wall.relations_map[relation_id] = appstruct['members']
+            return self.wall.relations_map.get_as_json(relation_id)
 
     def delete(self):
-        relation_id = self.get_relation_id()
-        # FIXME: Validation?
-        del self.wall.relations_map[relation_id]
-        return {'removed': relation_id}
+        if self.wall:
+            relation_id = self.get_relation_id()
+            if relation_id in self.wall.relations_map:
+                del self.wall.relations_map[relation_id]
+                return {'removed': relation_id}
+            self.error("No relation with relation_id %r" % relation_id)
 
     @view(schema=ResourceAPISchema())
     def collection_get(self):
-        return list(self.wall.relations_map.get_all_as_json())
+        if self.wall:
+            return list(self.wall.relations_map.get_all_as_json())
 
     @view(schema=CreateRelationAPISchema())
     def collection_post(self):
-        appstruct = self.get_json_appstruct()
-        # The members part
-        relation_id = self.wall.relations_map.create(appstruct['members'])
-        return self.wall.relations_map.get_as_json(relation_id)
+        if self.wall:
+            appstruct = self.get_json_appstruct()
+            # The members part
+            relation_id = self.wall.relations_map.create(appstruct['members'])
+            return self.wall.relations_map.get_as_json(relation_id)
 
     def options(self):
         # FIXME:

@@ -116,6 +116,15 @@ class FunctionalWallsAPITests(TestCase):
         response = app.get('/api/1/walls/2', status=200)
         self.assertEqual(response.json_body, {'data': {}, 'rid': 2, 'type_name': 'Wall'})
 
+    def test_get_404(self):
+        wsgiapp = self.config.make_wsgi_app()
+        app = TestApp(wsgiapp)
+        request = testing.DummyRequest()
+        apply_request_extensions(request)
+        self._fixture(request)
+        response = app.get('/api/1/walls/10', status=404)
+        self.assertEqual(response.json_body.get('status', None), 'error')
+
     def test_put(self):
         wsgiapp = self.config.make_wsgi_app()
         app = TestApp(wsgiapp)
@@ -125,6 +134,15 @@ class FunctionalWallsAPITests(TestCase):
         response = app.put('/api/1/walls/2', params=dumps({'title': 'Hello world!'}), status=200)
         self.assertEqual({"type_name": "Wall", "rid": 2, "data": {"title": "Hello world!"}}, response.json_body)
 
+    def test_put_bad_data(self):
+        wsgiapp = self.config.make_wsgi_app()
+        app = TestApp(wsgiapp)
+        request = testing.DummyRequest()
+        apply_request_extensions(request)
+        self._fixture(request)
+        response = app.put('/api/1/walls/2', params=dumps({'title': 100}), status=400)
+        self.assertEqual(response.json_body.get('status'), 'error')
+
     def test_delete(self):
         wsgiapp = self.config.make_wsgi_app()
         app = TestApp(wsgiapp)
@@ -133,6 +151,15 @@ class FunctionalWallsAPITests(TestCase):
         self._fixture(request)
         response = app.delete('/api/1/walls/2', status=200)
         self.assertEqual({"removed": 2}, response.json_body)
+
+    def test_delete_404(self):
+        wsgiapp = self.config.make_wsgi_app()
+        app = TestApp(wsgiapp)
+        request = testing.DummyRequest()
+        apply_request_extensions(request)
+        self._fixture(request)
+        response = app.delete('/api/1/walls/10', status=404)
+        self.assertEqual(response.json_body.get('status', None), 'error')
 
     def test_collection_get(self):
         wsgiapp = self.config.make_wsgi_app()
@@ -157,3 +184,11 @@ class FunctionalWallsAPITests(TestCase):
         self.assertEqual(len(keys), 1)
         new_rid = int(keys[0])
         self.assertEqual({'data': {'title': 'Hello world!'}, 'rid': new_rid, 'type_name': 'Wall'}, response.json_body)
+
+    def test_collection_post_bad_data(self):
+        wsgiapp = self.config.make_wsgi_app()
+        app = TestApp(wsgiapp)
+        request = testing.DummyRequest()
+        apply_request_extensions(request)
+        self._fixture(request)
+        app.post('/api/1/walls', params=dumps({'title': 123}), status=400)
