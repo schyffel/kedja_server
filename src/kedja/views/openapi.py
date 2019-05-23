@@ -11,6 +11,7 @@ swagger = Service(name='OpenAPI',
 @swagger.get()
 def openAPI_spec(request):
     doc = CorniceSwagger(get_services())
+    doc.ignore_methods = []
     my_spec = doc.generate('Kedja API', '1.0.0', swagger={'host': request.host})
     return my_spec
 
