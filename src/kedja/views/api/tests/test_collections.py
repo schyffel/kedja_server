@@ -217,7 +217,8 @@ class FunctionalCollectionsAPITests(TestCase):
         request = testing.DummyRequest()
         apply_request_extensions(request)
         self._fixture(request)
-        app.options('/api/1/walls/2/collections/3', status=200)
+        headers = (('Access-Control-Request-Method', 'PUT'), ('Origin', 'http://localhost'))
+        app.options('/api/1/walls/2/collections/3', status=200, headers=headers)
 
     def test_collection_options(self):
         wsgiapp = self.config.make_wsgi_app()
@@ -225,4 +226,5 @@ class FunctionalCollectionsAPITests(TestCase):
         request = testing.DummyRequest()
         apply_request_extensions(request)
         self._fixture(request)
-        app.options('/api/1/walls/2/collections', status=200)
+        headers = (('Access-Control-Request-Method', 'POST'), ('Origin', 'http://localhost'))
+        app.options('/api/1/walls/2/collections', status=200, headers=headers)

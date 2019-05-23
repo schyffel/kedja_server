@@ -37,7 +37,6 @@ response_schemas = {
 @resource(path='/api/1/walls/{rid}',
           collection_path='/api/1/walls',
           response_schemas=response_schemas,
-          schema=ResourceAPISchema(),
           validators=(colander_validator,),
           cors_origins=('*',),
           tags=['Walls'],
@@ -50,6 +49,7 @@ class WallsAPIView(ResourceAPIBase):
     #def __acl__(self):
     #    return [(Allow, Everyone, 'everything')]
 
+    @view(schema=ResourceAPISchema())
     def get(self):
         return self.base_get(self.request.matchdict['rid'], type_name='Wall')
 
@@ -57,6 +57,7 @@ class WallsAPIView(ResourceAPIBase):
     def put(self):
         return self.base_put(self.request.matchdict['rid'], type_name='Wall')
 
+    @view(schema=ResourceAPISchema())
     def delete(self):
         return self.base_delete(self.request.matchdict['rid'], type_name='Wall')
 
@@ -67,14 +68,6 @@ class WallsAPIView(ResourceAPIBase):
     @view(schema=CreateWallSchema())
     def collection_post(self):
         return self.base_collection_post(self.type_name, parent_rid=1, parent_type_name=self.parent_type_name)
-
-    def options(self):
-        # FIXME:
-        return {}
-
-    @view(schema=None)
-    def collection_options(self):
-        return self.options()
 
 
 def includeme(config):

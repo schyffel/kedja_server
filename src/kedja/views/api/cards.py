@@ -20,7 +20,6 @@ class UpdateCardAPISchema(SubResourceAPISchema, CreateCardSchema):
 @resource(collection_path='/api/1/collections/{rid}/cards',
           path='/api/1/collections/{rid}/cards/{subrid}',  # This isn't used, but cornice needs this path?
           tags=['Cards'],
-          schema=SubResourceAPISchema(),
           validators=(colander_validator,),
           cors_origins=('*',),
           factory='kedja.root_factory')
@@ -28,15 +27,17 @@ class ContainedCardsAPI(ResourceAPIBase):
     type_name = 'Card'
     parent_type_name = 'Collection'
 
+    @view(schema=SubResourceAPISchema())
     def get(self):
         collection = self.base_get(self.request.matchdict['rid'], type_name=self.parent_type_name)
         if collection:
             return self.contained_get(collection, self.request.matchdict['subrid'], type_name=self.type_name)
 
-    @view(schema=UpdateCardAPISchema)
+    @view(schema=UpdateCardAPISchema())
     def put(self):
         return self.base_put(self.request.matchdict['subrid'], type_name=self.type_name)
 
+    @view(schema=SubResourceAPISchema())
     def delete(self):
         return self.base_delete(self.request.matchdict['subrid'], type_name=self.type_name)
 
@@ -48,14 +49,6 @@ class ContainedCardsAPI(ResourceAPIBase):
     @view(schema=CreateCardSchema())
     def collection_post(self):
         return self.base_collection_post(self.type_name, parent_rid=self.request.matchdict['rid'], parent_type_name=self.parent_type_name)
-
-    def options(self):
-        # FIXME:
-        return {}
-
-    @view(schema=None)
-    def collection_options(self):
-        return self.options()
 
 
 def includeme(config):

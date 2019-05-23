@@ -216,18 +216,20 @@ class FunctionalCollectionsAPITests(TestCase):
         self._fixture(request)
         app.post('/api/1/walls/2/relations', params=dumps({'members': "Johan och ett par till"}), status=400)
 
-    def test_options(self):
-        wsgiapp = self.config.make_wsgi_app()
-        app = TestApp(wsgiapp)
-        request = testing.DummyRequest()
-        apply_request_extensions(request)
-        self._fixture(request)
-        app.options('/api/1/walls/2/relations/123', status=200)
-
     def test_collection_options(self):
         wsgiapp = self.config.make_wsgi_app()
         app = TestApp(wsgiapp)
         request = testing.DummyRequest()
         apply_request_extensions(request)
         self._fixture(request)
-        app.options('/api/1/walls/2/relations', status=200)
+        headers = (('Access-Control-Request-Method', 'POST'), ('Origin', 'http://localhost'))
+        app.options('/api/1/walls/2/relations', status=200, headers=headers)
+
+    def test_options(self):
+        wsgiapp = self.config.make_wsgi_app()
+        app = TestApp(wsgiapp)
+        request = testing.DummyRequest()
+        apply_request_extensions(request)
+        self._fixture(request)
+        headers = (('Access-Control-Request-Method', 'PUT'), ('Origin', 'http://localhost'))
+        app.options('/api/1/walls/2/relations/123', status=200, headers=headers)
