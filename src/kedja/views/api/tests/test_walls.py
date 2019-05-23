@@ -2,7 +2,8 @@ from json import dumps
 from unittest import TestCase
 
 from pyramid import testing
-from pyramid.request import apply_request_extensions, Request
+from pyramid.request import apply_request_extensions
+from pyramid.request import Request
 from transaction import commit
 from webtest import TestApp
 
@@ -82,6 +83,92 @@ class WallsAPIViewTests(TestCase):
         response = inst.collection_post()
         self.assertIn(response, root.values())
         self.assertEqual(len(root), 2)
+
+
+class WallsStructureAPIViewTests(TestCase):
+
+    def setUp(self):
+        self.config = testing.setUp()
+        self.config.include('arche.content')
+        self.config.include('arche.mutator')
+        self.config.include('kedja.resources')
+
+    def tearDown(self):
+        testing.tearDown()
+
+    @property
+    def _cut(self):
+        from kedja.views.api.walls import WallStructureAPIView
+        return WallStructureAPIView
+
+    def _fixture(self):
+        content = self.config.registry.content
+        root = content('Root')
+        root['wall'] = wall = content('Wall', rid=2)
+        for i in range(1, 4):
+            wall['col%s' % i] = collection = content('Collection', rid=i*10)
+            for j in range(1, 4):
+                collection['card%s' % j] = content('Card', rid=j*100+i)
+        return root
+
+    def test_get(self):
+        root = self._fixture()
+        request = testing.DummyRequest()
+        apply_request_extensions(request)
+        request.matchdict['rid'] = 2
+        inst = self._cut(request, context=root)
+        response = inst.get()
+        expected = [
+            [10, [
+                [101, []], [201, []], [301, []]
+            ]],
+            [20, [
+                [102, []], [202, []], [302, []]
+            ]],
+            [30, [
+                [103, []], [203, []], [303, []]
+            ]]
+        ]
+        self.assertEqual(response, expected)
+
+
+class WallsContentAPIViewTests(TestCase):
+
+    def setUp(self):
+        self.config = testing.setUp()
+        self.config.include('arche.content')
+        self.config.include('arche.mutator')
+        self.config.include('kedja.resources')
+
+    def tearDown(self):
+        testing.tearDown()
+
+    @property
+    def _cut(self):
+        from kedja.views.api.walls import WallContentAPIView
+        return WallContentAPIView
+
+    def _fixture(self):
+        content = self.config.registry.content
+        root = content('Root')
+        root['wall'] = wall = content('Wall', rid=2)
+        resources = {}
+        for i in range(1, 4):
+            wall['col%s' % i] = collection = content('Collection', rid=i*10)
+            resources[collection.rid] = collection
+            for j in range(1, 4):
+                collection['card%s' % j] = card = content('Card', rid=j*100+i)
+                resources[card.rid] = card
+        return root, resources
+
+    def test_get(self):
+        root, resources = self._fixture()
+        request = testing.DummyRequest()
+        apply_request_extensions(request)
+        request.matchdict['rid'] = 2
+        inst = self._cut(request, context=root)
+        response = inst.get()
+        self.assertEqual(response, resources)
 
 
 class FunctionalWallsAPITests(TestCase):
