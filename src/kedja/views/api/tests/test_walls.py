@@ -1,7 +1,8 @@
-from json import dumps
+from json import dumps, loads
 from unittest import TestCase
 
 from pyramid import testing
+from pyramid.renderers import render
 from pyramid.request import apply_request_extensions
 from pyramid.request import Request
 from transaction import commit
@@ -168,7 +169,7 @@ class WallsContentAPIViewTests(TestCase):
         request.matchdict['rid'] = 2
         inst = self._cut(request, context=root)
         response = inst.get()
-        self.assertEqual(response, resources)
+        self.assertEqual(response, {'resources': resources})
 
 
 class FunctionalWallsAPITests(TestCase):
@@ -297,3 +298,94 @@ class FunctionalWallsAPITests(TestCase):
         self._fixture(request)
         headers = (('Access-Control-Request-Method', 'POST'), ('Origin', 'http://localhost'))
         app.options('/api/1/walls', status=200, headers=headers)
+
+
+class FunctionalWallStructureAPIViewTests(TestCase):
+
+    def setUp(self):
+        settings={
+            'zodbconn.uri': 'memory://'
+        }
+        self.config = testing.setUp(settings=settings)
+        self.config.include('arche.content')
+        self.config.include('cornice')
+        self.config.include('cornice_swagger')
+        self.config.include('pyramid_zodbconn')
+        self.config.include('pyramid_tm')
+        self.config.include('kedja.resources')
+        self.config.include('kedja.views.api.walls')
+
+    def _fixture(self, request):
+        from kedja import root_factory
+        content = request.registry.content
+        root = root_factory(request)
+        root['wall'] = wall = content('Wall', rid=2)
+        for i in range(1, 4):
+            wall['col%s' % i] = collection = content('Collection', rid=i*10)
+            for j in range(1, 4):
+                collection['card%s' % j] = content('Card', rid=j*100+i)
+        commit()
+        return root
+
+    def test_get(self):
+        wsgiapp = self.config.make_wsgi_app()
+        app = TestApp(wsgiapp)
+        request = testing.DummyRequest()
+        apply_request_extensions(request)
+        self._fixture(request)
+        response = app.get('/api/1/walls/2/structure', status=200)
+        expected = [
+            [10, [
+                [101, []], [201, []], [301, []]
+            ]],
+            [20, [
+                [102, []], [202, []], [302, []]
+            ]],
+            [30, [
+                [103, []], [203, []], [303, []]
+            ]]
+        ]
+        self.assertEqual(response.json_body, expected)
+
+
+class FunctionalWallContentAPIViewTests(TestCase):
+
+    def setUp(self):
+        settings={
+            'zodbconn.uri': 'memory://'
+        }
+        self.config = testing.setUp(settings=settings)
+        self.config.include('arche.content')
+        self.config.include('arche.mutator')
+        self.config.include('cornice')
+        self.config.include('cornice_swagger')
+        self.config.include('pyramid_zodbconn')
+        self.config.include('pyramid_tm')
+        self.config.include('kedja.resources')
+        self.config.include('kedja.views.api.walls')
+
+    def _fixture(self, request):
+        from kedja import root_factory
+        root = root_factory(request)
+        content = self.config.registry.content
+        root['wall'] = wall = content('Wall', rid=2)
+        results = {}
+        for i in range(1, 4):
+            wall['col%s' % i] = collection = content('Collection', rid=i*10)
+            results[collection.rid] = collection
+            for j in range(1, 4):
+                collection['card%s' % j] = card = content('Card', rid=j*100+i)
+                results[card.rid] = card
+        commit()
+        return {'resources': results}
+
+    def test_get(self):
+        wsgiapp = self.config.make_wsgi_app()
+        app = TestApp(wsgiapp)
+        request = testing.DummyRequest()
+        apply_request_extensions(request)
+        content = self._fixture(request)
+        response = app.get('/api/1/walls/2/content', status=200)
+        converted = render('json', content, request=request)
+        expected = loads(converted)
+        self.assertEqual(response.json_body, expected)

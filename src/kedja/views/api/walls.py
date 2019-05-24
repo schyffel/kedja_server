@@ -71,24 +71,18 @@ class WallsAPIView(ResourceAPIBase):
         return self.base_collection_post(self.type_name, parent_rid=1, parent_type_name=self.parent_type_name)
 
 
-walls_structure = Service(
-    name='walls_structure',
-    description='Return structure',
-    cors_origins=('*',),
-    validators=(colander_validator,),
-    tags=['Walls'],
-    path='/api/1/walls/{rid}/structure',
-    factory='kedja.root_factory'
-)
-
-
+@resource(path='/api/1/walls/{rid}/structure',
+          validators=(colander_validator,),
+          cors_origins=('*',),
+          tags=['Walls'],
+          factory='kedja.root_factory')
 class WallStructureAPIView(ResourceAPIBase):
     type_name = 'Wall'
 
     # def __acl__(self):
     #    return [(Allow, Everyone, 'everything')]
 
-    @walls_structure.get(schema=ResourceAPISchema())
+    @view(schema=ResourceAPISchema())
     def get(self):
         """
         Return a structure with all contained items. It has to be a list since we want to keep order
@@ -119,24 +113,18 @@ class WallStructureAPIView(ResourceAPIBase):
             self.get_structure(v, contained_data)
 
 
-walls_content = Service(
-    name='walls_content',
-    description='Return everything within a wall',
-    cors_origins=('*',),
-    #validators=(colander_validator,),
-    tags=['Walls'],
-    path='/api/1/walls/{rid}/content',
-    factory='kedja.root_factory'
-)
-
-
+@resource(path='/api/1/walls/{rid}/content',
+          validators=(colander_validator,),
+          cors_origins=('*',),
+          tags=['Walls'],
+          factory='kedja.root_factory')
 class WallContentAPIView(ResourceAPIBase):
     type_name = 'Wall'
 
     # def __acl__(self):
     #    return [(Allow, Everyone, 'everything')]
 
-    @walls_content.get(schema=ResourceAPISchema())
+    @view(schema=ResourceAPISchema())
     def get(self):
         """ Get a structure with all of the content within this wall.
             It returns a dict where the resource ID is the key.
@@ -145,7 +133,8 @@ class WallContentAPIView(ResourceAPIBase):
         if wall:
             results = {}
             self.get_content(wall, results)
-            return results
+            # Load relations etc too
+            return {'resources': results}
 
     def get_content(self, context, data):
         for v in context.values():
