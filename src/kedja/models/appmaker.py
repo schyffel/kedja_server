@@ -9,7 +9,12 @@ def appmaker(zodb_root, request):
         return zodb_root['app_root']
     except KeyError:
         logger.info("Creating root")
-        cf = request.registry.content
-        zodb_root['app_root'] = root = cf('Root')
-        root['users'] = cf('Users')
+        zodb_root['app_root'] = root = request.registry.content('Root')
+        root_populator(root, request)
         return root
+
+
+def root_populator(root, request):
+    """ Populates the application root with the basics.
+    """
+    root['users'] = request.registry.content('Users')

@@ -1,6 +1,10 @@
 from arche.interfaces import IFolder
 from arche.interfaces import IRoot  # API
+from zope.interface import Interface
 
+
+class ICredentials(Interface):
+    pass
 
 class ICard(IFolder):
     pass
@@ -16,3 +20,8 @@ class IUsers(IFolder):
 
 class IUser(IFolder):
     pass
+
+
+class IAuthomatic(Interface):
+    """ The util where authomatic is configured.
+    """
