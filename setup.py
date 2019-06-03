@@ -22,6 +22,9 @@ requires = [
     'cornice_swagger',
     'colander',
     'colander_jsonschema',
+    'pyyaml',
+    'authomatic',
+    'pytz',
 ]
 
 tests_require = [

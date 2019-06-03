@@ -1,5 +1,5 @@
 
 
 def includeme(config):
-    pass
+    config.include('.authomatic')
 #    config.include('.cors')

@@ -1,7 +1,10 @@
 import colander
 from arche.folder import Folder
 from arche.content import ContentType
+from pyramid.traversal import find_root
 from zope.interface import implementer
+from BTrees.OOBTree import OOBTree
+from BTrees.OLBTree import OLBTree
 
 from kedja import _
 from kedja.interfaces import IUsers
@@ -14,7 +17,36 @@ class UsersSchema(colander.Schema):
 
 @implementer(IUsers)
 class Users(Folder, JSONRenderable):
-    pass
+
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        self.providers = OOBTree()
+
+    def add_provider(self, user, result):
+        """
+        :param user: A Kedja User object
+        :param result: the result from the authomatic login
+        """
+        provider = self.providers.setdefault(result.provider.name, OLBTree())
+        provider[result.user.id] = user.rid
+
+    def find_providers_user(self, result, default=None):
+        """
+        :param result: Authomatic login result
+        :param default: Return value when not found
+        :return: User or default
+        """
+        user_rid = self.providers.get(result.provider.name, {}).get(result.user.id, None)
+        return self.get_rid_user(user_rid, default)
+
+    def get_rid_user(self, rid, default=None):
+        """
+        :param rid: Users RID (resource  ID)
+        :param default: Return value when not found
+        :return: User or default
+        """
+        root = find_root(self)
+        return root.rid_map.get_resource(rid, default)
 
 
 UsersContent = ContentType(factory=Users, schema=UsersSchema, title=_("Users"))

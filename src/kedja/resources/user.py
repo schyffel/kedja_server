@@ -1,7 +1,6 @@
 import colander
 from arche.folder import Folder
 from arche.content import ContentType
-from kedja.utils import utcnow
 from zope.interface import implementer
 from BTrees.OOBTree import OOBTree
 
@@ -9,10 +8,10 @@ from kedja import _
 from kedja.interfaces import ICredentials
 from kedja.interfaces import IUser
 from kedja.resources.mixins import JSONRenderable
+from kedja.utils import utcnow
 
 
 class UserSchema(colander.Schema):
-    pass
 
     def after_bind(self, node, kw):
         """ Use this instead of deferred, since cornice can't handle schema binding. """

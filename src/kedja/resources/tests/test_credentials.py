@@ -3,6 +3,7 @@ from unittest import TestCase
 from pyramid import testing
 from pyramid.authentication import extract_http_basic_credentials
 from pyramid.authentication import HTTPBasicCredentials
+from pyramid.request import apply_request_extensions
 
 
 class HTTPHeaderAuthenticationPolicyTests(TestCase):
@@ -39,9 +40,14 @@ class HTTPHeaderAuthenticationPolicyTests(TestCase):
         self.assertEqual(results, expected)
 
     def test_json(self):
+        self.config.include('arche.content')
+        self.config.include('arche.mutator')
+        self.config.include('kedja.resources.user')
+        #self.config.include('kedja.resources.credentials')
         user = self._User(rid=1)
         obj = self._cut(user, token="123")
         request = testing.DummyRequest()
+        apply_request_extensions(request)
         results = obj.__json__(request)
-        expected = {'header': obj.header(), 'userid': user.userid}
+        expected = {'type_name': 'User', 'rid': user.rid, 'data': {}, 'header':  obj.header()}
         self.assertEqual(results, expected)

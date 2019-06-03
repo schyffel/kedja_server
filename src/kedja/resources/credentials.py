@@ -46,9 +46,12 @@ class Credentials(Persistent):
             # FIXME Configurable from settings, request etc?
             expires = utcnow() + timedelta(days=7)
         self.expires = expires
+        user.add_credentials(self)
 
     def __json__(self, request):
-        return  {'header': self.header(), 'userid': self.user.userid}
+        response = self.user.__json__(request)
+        response['header'] = self.header()
+        return  response
 
     def header(self):
         merged = "%s:%s" % (self.user.userid, self.token)
