@@ -66,7 +66,7 @@ class RelationMap(Persistent):
             if x not in self.rid_to_relations:
                 self.rid_to_relations[x] = OOSet()
             self.rid_to_relations[x].add(relation_id)
-        self.relation_to_rids[relation_id] = OOSet(rids)
+        self.relation_to_rids[relation_id] = tuple(rids)
 
     def __contains__(self, relation_id:int):
         return relation_id in self.relation_to_rids
