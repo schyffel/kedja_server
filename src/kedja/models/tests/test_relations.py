@@ -1,6 +1,8 @@
 from unittest import TestCase
 
+from kedja.models.appmaker import root_populator
 from pyramid import testing
+from pyramid.request import apply_request_extensions
 
 
 class RelationsTests(TestCase):
@@ -61,3 +63,45 @@ class RelationsTests(TestCase):
         self.assertEqual(map.find_relevant_relation_ids(1), {1})
         self.assertEqual(map.find_relevant_relation_ids(2), {1, 2})
         self.assertEqual(map.find_relevant_relation_ids(4), set())
+
+
+class RelationsIntegrationTests(TestCase):
+
+    def setUp(self):
+        self.config = testing.setUp()
+        self.config.include('arche.content')
+        self.config.include('arche.predicates')
+        self.config.include('kedja.resources')
+        self.config.include('kedja.models.relations')
+
+    def tearDown(self):
+        testing.tearDown()
+
+    def _fixture(self):
+        request = testing.DummyRequest()
+        apply_request_extensions(request)
+        cf = self.config.registry.content
+        root = cf('Root')
+        root_populator(root, request)
+        root['wall'] = wall = cf('Wall')
+        wall['collection1'] = c1 = cf('Collection', rid=10)
+        c1['c1'] = cf('Card', rid=11)
+        c1['c2'] = cf('Card', rid=12)
+        c1['c3'] = cf('Card', rid=13)
+        wall['collection2'] = c2 = cf('Collection', rid=20)
+        c2['c1'] = cf('Card', rid=21)
+        c2['c2'] = cf('Card', rid=22)
+        c2['c3'] = cf('Card', rid=23)
+        return wall, request
+
+    def test_card_removes_connections(self):
+        wall, request = self._fixture()
+        wall.relations_map[1] = [11, 21]
+        del wall['collection1']['c1']
+        self.assertNotIn(1, wall.relations_map)
+
+    def test_collection_removes_connections(self):
+        wall, request = self._fixture()
+        wall.relations_map[1] = [11, 21]
+        del wall['collection1']
+        self.assertNotIn(1, wall.relations_map)

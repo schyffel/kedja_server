@@ -2,11 +2,16 @@ from random import randrange
 
 from BTrees import family64
 from BTrees.OOBTree import OOSet
+from arche.interfaces import IResourceWillBeRemoved
 from persistent import Persistent
+from pyramid.traversal import find_interface
+
+from kedja.interfaces import ICard
+from kedja.interfaces import ICollection
+from kedja.interfaces import IWall
 
 
 # FIXME: Might be smarter to have these as resources
-
 class RelationJSON(object):
 
     def __init__(self, relation_id, members=()):
@@ -114,7 +119,7 @@ class RelationMap(Persistent):
         return relation_id
 
     def find_relations(self, rid:int, *rids):
-        """ Get relations that has one or more rids in them
+        """ Get relations that has one or more rids in them. All RIDs specified will be required for a match.
         """
         first = set(self.rid_to_relations.get(rid, ()))
         if rids:
@@ -136,3 +141,27 @@ class RelationMap(Persistent):
 
     def __len__(self):
         return len(self.relation_to_rids)
+
+
+def remove_contained_cards_relations(event):
+    """ If a collection is removed, cleanup all relevant relations to/from cards that will be removed.
+    """
+    resource = event.context
+    wall = find_interface(resource, IWall)
+    for rid in event.contained_rids:
+        for relation_id in wall.relations_map.find_relations(rid):
+            del wall.relations_map[relation_id]
+
+
+def remove_card_relations(event):
+    """ In case a card is removed. cleanup all relations to/from that card.
+    """
+    resource = event.context
+    wall = find_interface(resource, IWall)
+    for relation_id in wall.relations_map.find_relations(resource.rid):
+        del wall.relations_map[relation_id]
+
+
+def includeme(config):
+    config.add_subscriber(remove_contained_cards_relations, IResourceWillBeRemoved, context=ICollection)
+    config.add_subscriber(remove_card_relations, IResourceWillBeRemoved, context=ICard)
