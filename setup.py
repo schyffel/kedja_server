@@ -25,12 +25,14 @@ requires = [
     'pyyaml',
     'authomatic',
     'pytz',
+    'redis',
 ]
 
 tests_require = [
     'nose',
     'coverage',
-    'webtest'
+    'webtest',
+    'fakeredis'
 ]
 
 setup(
