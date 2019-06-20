@@ -8,7 +8,7 @@ from pyramid.traversal import find_root
 logger = getLogger(__name__)
 
 
-class ResourceAPIBase(object):
+class APIBase(object):
 
     def __init__(self, request, context=None):
         self.request = request
@@ -36,13 +36,6 @@ class ResourceAPIBase(object):
         request.errors.add(type, msg)
         request.errors.status = status
 
-    # Use this?
-    # def validate_rid(self, request, **kw):
-    #     """ RID must be numeric and exist. """
-    #     rid = self.request.matchdict['rid']
-    #     if self.get_resource(rid) is None:
-    #         return self.error(request, "No resource with rid %r exists" % rid)
-
     def get_json_appstruct(self):
         if not self.request.body:
             self.error("no payload received", type='body', status=400)
@@ -66,6 +59,16 @@ class ResourceAPIBase(object):
         resource = self.get_resource(rid)
         if self.check_type_name(resource, type_name=type_name):
             return resource
+
+
+class ResourceAPIBase(APIBase):
+
+    # Use this?
+    # def validate_rid(self, request, **kw):
+    #     """ RID must be numeric and exist. """
+    #     rid = self.request.matchdict['rid']
+    #     if self.get_resource(rid) is None:
+    #         return self.error(request, "No resource with rid %r exists" % rid)
 
     def contained_get(self, parent, rid, type_name=None):
         """ Fetch a resource contained within parent. It wil simply check that the parent matches.

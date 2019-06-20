@@ -1,0 +1,9 @@
+google:
+  id: 1
+  title: Google
+  class_: authomatic.providers.oauth2.Google
+  consumer_key: xxx
+  consumer_secret: yyy
+  scope:
+    - https://www.googleapis.com/auth/userinfo.email
+    - https://www.googleapis.com/auth/userinfo.profile

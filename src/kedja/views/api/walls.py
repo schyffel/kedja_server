@@ -2,7 +2,6 @@ import colander
 from cornice.resource import resource
 from cornice.resource import view
 from cornice.validators import colander_validator
-from cornice import Service
 
 from kedja.resources.wall import WallSchema
 from kedja.views.api.base import BaseResponseAPISchema

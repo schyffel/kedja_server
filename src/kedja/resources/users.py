@@ -7,6 +7,7 @@ from BTrees.OOBTree import OOBTree
 from BTrees.OLBTree import OLBTree
 
 from kedja import _
+from kedja.interfaces import IUser
 from kedja.interfaces import IUsers
 from kedja.resources.mixins import JSONRenderable
 
@@ -22,13 +23,13 @@ class Users(Folder, JSONRenderable):
         super().__init__(**kw)
         self.providers = OOBTree()
 
-    def add_provider(self, user, result):
+    def add_provider(self, user, userpayload:dict):
         """
         :param user: A Kedja User object
-        :param result: the result from the authomatic login
+        :param userpayload: the result from the authomatic login, the user part as a dict
         """
-        provider = self.providers.setdefault(result.provider.name, OLBTree())
-        provider[result.user.id] = user.rid
+        provider = self.providers.setdefault(userpayload['provider'], OLBTree())
+        provider[userpayload['id']] = user.rid
 
     def find_providers_user(self, result, default=None):
         """
@@ -46,7 +47,10 @@ class Users(Folder, JSONRenderable):
         :return: User or default
         """
         root = find_root(self)
-        return root.rid_map.get_resource(rid, default)
+        user = root.rid_map.get_resource(rid, default)
+        if IUser.providedBy(user):
+            return user
+        return default
 
 
 UsersContent = ContentType(factory=Users, schema=UsersSchema, title=_("Users"))

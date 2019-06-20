@@ -59,7 +59,7 @@ class OneTimeRegistrationToken(object):
         return "{}.{}".format(self.prefix, token)
 
     def create(self, payload:dict, expires:int=1200, registry=None):
-        token = _generate_token(length=50)
+        token = _generate_token(length=70)
         conn = get_redis_conn(registry)
         key_name = self.get_key(token)
         conn.setex(key_name, expires, json.dumps(payload))
@@ -73,6 +73,11 @@ class OneTimeRegistrationToken(object):
             payload = payload.decode()
             return json.loads(payload)
 
+    def validate(self, token:str, registry=None):
+        conn = get_redis_conn(registry)
+        key_name = self.get_key(token)
+        return bool(conn.exists(key_name))
+
 
 @implementer(IOneTimeAuthToken)
 @adapter(IRoot)
@@ -83,26 +88,32 @@ class OneTimeAuthToken(object):
     def __init__(self, context: IRoot):
         self.context = context
 
-    def get_key(self, credentials: ICredentials, token:str):
-        return "{}.{}.{}".format(self.prefix, credentials.user.userid, token)
+    def get_key(self, userid:str, token:str):
+        return "{}.{}.{}".format(self.prefix, userid, token)
 
     def create(self, credentials: ICredentials, expires=30, registry=None):
         assert ICredentials.providedBy(credentials)  # Test
         token = _generate_token()
+        key_name = self.get_key(credentials.user.userid, token)
         conn = get_redis_conn(registry)
-        key_name = self.get_key(credentials, token)
         conn.setex(key_name, expires, credentials.token)
         return token
 
     def consume(self, userid:str, token:str, registry=None):
-        key_name = "{}.{}.{}".format(self.prefix, userid, token)
+        key_name = self.get_key(userid, token)
         conn = get_redis_conn(registry)
         cred_token = conn.get(key_name)
         if cred_token:
             cred_token = cred_token.decode()
             user = self.context['users'].get(userid, None)
             if user and user.validate_credentials(cred_token):
-                return user.credentials[cred_token].header()
+                return user.credentials.get(cred_token, None)
+
+    def validate(self, userid:str, token:str, registry=None):
+        key_name = self.get_key(userid, token)
+        conn = get_redis_conn(registry)
+        return bool(conn.exists(key_name))
+
 
 def _generate_token(length=30):
     out = ""
@@ -111,8 +122,7 @@ def _generate_token(length=30):
     return out
 
 
-
-
 def includeme(config):
+    config.set_authorization_policy(HTTPHeaderAuthenticationPolicy())
     config.registry.registerAdapter(OneTimeRegistrationToken)
     config.registry.registerAdapter(OneTimeAuthToken)

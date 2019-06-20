@@ -5,7 +5,7 @@ from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.request import apply_request_extensions
 from zope.interface.verify import verifyObject
 
-from kedja.interfaces import IOneTimeAuthToken, IOneTimeRegistrationToken
+from kedja.interfaces import IOneTimeAuthToken, IOneTimeRegistrationToken, ICredentials
 from kedja.models.appmaker import root_populator
 
 
@@ -67,7 +67,6 @@ class HTTPHeaderAuthenticationPolicyTests(TestCase):
         self.assertEqual('10', request.authenticated_userid)
 
 
-
 class OneTimeRegistrationTokenTests(TestCase):
 
     def setUp(self):
@@ -109,7 +108,7 @@ class OneTimeRegistrationTokenTests(TestCase):
         request = testing.DummyRequest()
         apply_request_extensions(request)
         root = request.registry.content('Root')
-        obj = IOneTimeRegistrationToken(root, None)
+        obj = self.config.registry.queryAdapter(root, IOneTimeRegistrationToken)
         self.assertTrue(verifyObject(IOneTimeRegistrationToken, obj))
 
 
@@ -152,13 +151,14 @@ class OneTimeAuthTokenTests(TestCase):
         root, cred = self._fixture(request)
         obj = self._cut(root)
         temp_token = obj.create(cred, registry=self.config.registry)
-        result = obj.consume('10', temp_token)
-        self.assertEqual('Basic MTA6MTIz', result)
+        cred_returned = obj.consume('10', temp_token)
+        self.assertTrue(ICredentials.providedBy(cred_returned))
+        self.assertEqual(cred_returned, cred)
 
     def test_integration(self):
         self.config.include('kedja.models.auth')
         request = testing.DummyRequest()
         apply_request_extensions(request)
         root, cred = self._fixture(request)
-        obj = IOneTimeAuthToken(root, None)
+        obj = self.config.registry.queryAdapter(root, IOneTimeAuthToken)
         self.assertTrue(verifyObject(IOneTimeAuthToken, obj))
