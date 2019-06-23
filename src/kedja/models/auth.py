@@ -6,6 +6,7 @@ from arche.interfaces import IRoot
 from kedja.utils import get_redis_conn
 from pyramid.authentication import CallbackAuthenticationPolicy
 from pyramid.authentication import extract_http_basic_credentials
+from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.interfaces import IAuthenticationPolicy
 from zope.component import adapter
 from zope.interface import implementer
@@ -123,6 +124,7 @@ def _generate_token(length=30):
 
 
 def includeme(config):
+    config.set_authentication_policy(ACLAuthorizationPolicy())
     config.set_authorization_policy(HTTPHeaderAuthenticationPolicy())
     config.registry.registerAdapter(OneTimeRegistrationToken)
     config.registry.registerAdapter(OneTimeAuthToken)
