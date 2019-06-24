@@ -200,7 +200,7 @@ class AuthRegisterAPIView(APIBase, AuthViewMixin):
         userpayload = self.reg_tokens.consume(self.request.matchdict['token'], registry=self.request.registry)
         users = self.root['users']
         # FIXME: Handle all other updates from POST?
-        user = self.request.registry.content('User')
+        user = self.request.registry.content('User', rid=self.request.root.rid_map.new_rid())
         users[user.userid] = user
         users.add_provider(user, userpayload)
         cred = self.request.registry.content('Credentials', user)
