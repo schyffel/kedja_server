@@ -8,8 +8,9 @@ from kedja.views.api.base import ResourceAPISchema
 from kedja.views.api.base import ResourceAPIBase
 
 
-class UpdateUserAPISchema(ResourceAPISchema, UserSchema):
+class UpdateUserAPISchema(ResourceAPISchema):
     title = "Update a specific user"
+    body = UserSchema(description="JSON payload")
 
 
 @resource(path='/api/1/users/{rid}',
@@ -35,7 +36,7 @@ class UsersAPIView(ResourceAPIBase):
     def put(self):
         return self.base_put(self.request.matchdict['rid'], type_name=self.type_name)
 
-    @view(schema=ResourceAPISchema())
+    @view(schema=ResourceAPISchema(), validators=(colander_validator, 'delete_resource_validator'))
     def delete(self):
         return self.base_delete(self.request.matchdict['rid'], type_name=self.type_name)
 

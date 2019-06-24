@@ -2,6 +2,7 @@ import os
 from unittest import TestCase
 
 from kedja.models.appmaker import root_populator
+from kedja.testing import get_settings
 from pyramid import testing
 from pyramid.request import apply_request_extensions, Request
 from transaction import commit
@@ -15,21 +16,8 @@ class FunctionalAuthenticationAPITests(TestCase):
     """ Authentication tests post OAuth2 """
 
     def setUp(self):
-        here = os.path.abspath(os.path.dirname(__file__))
-        settings={
-            'zodbconn.uri': 'memory://',
-            'kedja.authomatic': os.path.join(here, 'authomatic.yaml')
-        }
-        self.config = testing.setUp(settings=settings)
-        self.config.include('arche.content')
-        #self.config.include('arche.mutator')
-        self.config.include('cornice')
-        self.config.include('cornice_swagger')
-        self.config.include('pyramid_zodbconn')
-        self.config.include('pyramid_tm')
-        self.config.include('kedja.models.auth')
-        self.config.include('kedja.models.authomatic')
-        self.config.include('kedja.resources')
+        self.config = testing.setUp(settings=get_settings())
+        self.config.include('kedja.testing')
         self.config.include('kedja.views.api.auth')
 
     def _fixture(self, request):

@@ -2,7 +2,7 @@ from json import JSONDecodeError
 from logging import getLogger
 
 import colander
-from arche.content import EDIT, VIEW
+from arche.content import EDIT, VIEW, DELETE
 from pyramid.decorator import reify
 from pyramid.traversal import find_root
 
@@ -49,8 +49,9 @@ class APIBase(object):
             return
 
     def check_type_name(self, resource, type_name=None):
-        type_ok = type_name is not None and type_name == getattr(resource, 'type_name', object())
-        if type_ok:
+        if type_name is None:
+            return True
+        if type_name == getattr(resource, 'type_name', object()):
             return True
         self.error("The fetched resource is not a %r" % type_name, type='path', status=404)
         return False
@@ -129,13 +130,21 @@ class ResourceAPIBase(APIBase):
 
     def edit_resource_validator(self, request, **kw):
         context = self.base_get(request.matchdict['rid'])
-        if not request.registry.content.has_permission_type(self, context, request, EDIT):
-            self.error("You're not allowed to edit: %s" % context, status=403)
+        if context is not None:
+            if not request.registry.content.has_permission_type(context, request, EDIT):
+                self.error("You're not allowed to edit: %s" % context, status=403)
 
     def view_resource_validator(self, request, **kw):
         context = self.base_get(request.matchdict['rid'])
-        if not request.registry.content.has_permission_type(self, context, request, VIEW):
-            self.error("You're not allowed to view: %s" % context, status=403)
+        if context is not None:
+            if not request.registry.content.has_permission_type(context, request, VIEW):
+                self.error("You're not allowed to view: %s" % context, status=403)
+
+    def delete_resource_validator(self, request, **kw):
+        context = self.base_get(request.matchdict['rid'])
+        if context is not None:
+            if not request.registry.content.has_permission_type(context, request, DELETE):
+                self.error("You're not allowed to delete: %s" % context, status=403)
 
 
 class RIDPathSchema(colander.Schema):
