@@ -128,12 +128,12 @@ class ResourceAPIBase(APIBase):
         return new_res
 
     def edit_resource_validator(self, request, **kw):
-        context = self.base_get(request.routemap['rid'])
+        context = self.base_get(request.matchdict['rid'])
         if not request.registry.content.has_permission_type(self, context, request, EDIT):
             self.error("You're not allowed to edit: {}" % context, status=403)
 
     def view_resource_validator(self, request, **kw):
-        context = self.base_get(request.routemap['rid'])
+        context = self.base_get(request.matchdict['rid'])
         if not request.registry.content.has_permission_type(self, context, request, VIEW):
             self.error("You're not allowed to view: {}" % context, status=403)
 
