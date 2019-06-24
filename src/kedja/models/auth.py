@@ -3,16 +3,19 @@ from random import choice
 from string import ascii_letters, digits
 
 from arche.interfaces import IRoot
-from kedja.utils import get_redis_conn
 from pyramid.authentication import CallbackAuthenticationPolicy
 from pyramid.authentication import extract_http_basic_credentials
 from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.interfaces import IAuthenticationPolicy
+from pyramid.interfaces import IDebugLogger
 from zope.component import adapter
 from zope.interface import implementer
 
-from kedja.interfaces import ICredentials, IOneTimeRegistrationToken
+from kedja.interfaces import ICredentials
 from kedja.interfaces import IOneTimeAuthToken
+from kedja.interfaces import IOneTimeRegistrationToken
+from kedja.utils import get_redis_conn
+
 
 
 @implementer(IAuthenticationPolicy)
@@ -39,12 +42,56 @@ class HTTPHeaderAuthenticationPolicy(CallbackAuthenticationPolicy):
             request.root['users'][token_userid].remove_credentials(token)
 
     def unauthenticated_userid(self, request):
-        token_userid, token = extract_http_basic_credentials(request)
+        http_creds = extract_http_basic_credentials(request)
+
+        if http_creds is None:
+            self.debug and self._log(
+                'No HTTP Credentials received, so no auth. Will return None',
+                'authenticated_userid',
+                request,
+            )
+            return
+        if request.root is None:
+            self.debug and self._log(
+                "request.root is None, so can't lookup user. Will return None",
+                'authenticated_userid',
+                request,
+            )
+            return
+
         users = request.root['users']
-        if token_userid in users:
-            user = users[token_userid]
-            if user.validate_credentials(token):
+        # username == userid, and password is the token for the actual credentials
+        if http_creds.username in users:
+            user = users[http_creds.username]
+            if user.validate_credentials(http_creds.password):
+                self.debug and self._log(
+                    'Valid credentials and user found, will return userid "%s" ' % user.userid,
+                    'authenticated_userid',
+                    request,
+                )
                 return user.userid
+            else:
+                self.debug and self._log(
+                    "Credentials weren't valid, will return None",
+                    'authenticated_userid',
+                    request,
+                )
+        else:
+            self.debug and self._log(
+                "Userid provided in credentials doesn't exist, will return None",
+                'authenticated_userid',
+                request,
+            )
+
+
+    def _log(self, msg, methodname, request):
+        logger = request.registry.queryUtility(IDebugLogger)
+        if logger:
+            cls = self.__class__
+            classname = cls.__module__ + '.' + cls.__name__
+            methodname = classname + '.' + methodname
+            logger.debug(methodname + ': ' + msg)
+
 
 
 @implementer(IOneTimeRegistrationToken)
@@ -124,7 +171,8 @@ def _generate_token(length=30):
 
 
 def includeme(config):
-    config.set_authentication_policy(ACLAuthorizationPolicy())
-    config.set_authorization_policy(HTTPHeaderAuthenticationPolicy())
+    debug_authn = config.registry.settings.get('pyramid.debug_authorization', False)
+    config.set_authentication_policy(HTTPHeaderAuthenticationPolicy(debug=debug_authn))
+    config.set_authorization_policy(ACLAuthorizationPolicy())
     config.registry.registerAdapter(OneTimeRegistrationToken)
     config.registry.registerAdapter(OneTimeAuthToken)
