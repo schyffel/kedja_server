@@ -18,7 +18,7 @@ See AuthomaticView
 
 Alt A, User exists:
 3A Credentials will be created and a temp login token returned
-Returned url will be "<client url>/login?u=<userid>&t=<temp token>"
+Returned url will be "<client url>/logging_in?u=<userid>&t=<temp token>"
 See AuthomaticView
 
 
@@ -92,7 +92,7 @@ class AuthViewMixin(object):
     def create_login_credentials(self, user):
         cred = self.request.registry.content('Credentials', user)
         auth_token = self.auth_tokens.create(cred)
-        login_url = "{}/login?u={}&t={}".format(
+        login_url = "{}/logging_in?u={}&t={}".format(
             self.request.registry.settings['kedja.client_url'],
             user.userid,
             auth_token
