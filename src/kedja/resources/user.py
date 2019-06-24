@@ -1,9 +1,16 @@
 import colander
 from arche.folder import Folder
 from arche.content import ContentType
+from pyramid.security import Allow, DENY_ALL
 from zope.interface import implementer
 from BTrees.OOBTree import OOBTree
 
+from arche.content import (
+ADD,
+EDIT,
+DELETE,
+VIEW,
+)
 from kedja import _
 from kedja.interfaces import ICredentials
 from kedja.interfaces import IUser
@@ -12,6 +19,14 @@ from kedja.utils import utcnow
 
 
 class UserSchema(colander.Schema):
+    first_name = colander.SchemaNode(
+        colander.String(),
+        title = "First name",
+    )
+    last_name = colander.SchemaNode(
+        colander.String(),
+        title = "Last name",
+    )
 
     def after_bind(self, node, kw):
         """ Use this instead of deferred, since cornice can't handle schema binding. """
@@ -44,8 +59,16 @@ class User(Folder, JSONRenderable):
             cred = self.credentials[token]
             return utcnow() < cred.expires
 
+    def __acl__(self):
+        return [
+            (Allow, self.userid, OWNER_PERMS),
+            DENY_ALL
+        ]
+
 
 UserContent = ContentType(factory=User, schema=UserSchema, title=_("User"))
+
+OWNER_PERMS = [UserContent.get_default_permission(x) for x in [ADD, EDIT, VIEW, DELETE]]
 
 
 def includeme(config):

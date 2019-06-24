@@ -2,6 +2,7 @@ from json import JSONDecodeError
 from logging import getLogger
 
 import colander
+from arche.content import EDIT, VIEW
 from pyramid.decorator import reify
 from pyramid.traversal import find_root
 
@@ -125,6 +126,16 @@ class ResourceAPIBase(APIBase):
             changed = mutator.update(appstruct)
         # Log changed?
         return new_res
+
+    def edit_resource_validator(self, request, **kw):
+        context = self.base_get(request.routemap['rid'])
+        if not request.registry.content.has_permission_type(self, context, request, EDIT):
+            self.error("You're not allowed to edit: {}" % context, status=403)
+
+    def view_resource_validator(self, request, **kw):
+        context = self.base_get(request.routemap['rid'])
+        if not request.registry.content.has_permission_type(self, context, request, VIEW):
+            self.error("You're not allowed to view: {}" % context, status=403)
 
 
 class RIDPathSchema(colander.Schema):

@@ -27,11 +27,11 @@ class UsersAPIView(ResourceAPIBase):
     # def __acl__(self):
     #    return [(Allow, Everyone, 'everything')]
 
-    @view(schema=ResourceAPISchema())
+    @view(schema=ResourceAPISchema(), validators=(colander_validator, 'view_resource_validator'))
     def get(self):
         return self.base_get(self.request.matchdict['rid'], type_name=self.type_name)
 
-    @view(schema=UpdateUserAPISchema())
+    @view(schema=UpdateUserAPISchema(), validators=(colander_validator, 'edit_resource_validator'))
     def put(self):
         return self.base_put(self.request.matchdict['rid'], type_name=self.type_name)
 
