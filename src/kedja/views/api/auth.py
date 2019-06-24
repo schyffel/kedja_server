@@ -175,7 +175,7 @@ class AuthomaticView(BaseView, AuthViewMixin):
                     if not updated:
                         result.user.update()
                     # Create a temporary registration with this user
-                    reg_tokens = IOneTimeRegistrationToken(self.context)
+                    reg_tokens = self.request.registry.getAdapter(self.context, IOneTimeRegistrationToken)
                     token = reg_tokens.create(result.user.to_dict())
                     # Redirect back to client with the token
                     client_url = self.request.registry.settings['kedja.client_url']

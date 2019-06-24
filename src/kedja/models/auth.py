@@ -17,7 +17,6 @@ from kedja.interfaces import IOneTimeRegistrationToken
 from kedja.utils import get_redis_conn
 
 
-
 @implementer(IAuthenticationPolicy)
 class HTTPHeaderAuthenticationPolicy(CallbackAuthenticationPolicy):
     """ An authentication policy that fetches authentication objects from the user profile.
