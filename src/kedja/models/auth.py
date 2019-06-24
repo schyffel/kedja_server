@@ -171,7 +171,7 @@ def _generate_token(length=30):
 
 def includeme(config):
     debug_authn = config.registry.settings.get('pyramid.debug_authorization', False)
-    config.set_authentication_policy(HTTPHeaderAuthenticationPolicy(debug=debug_authn))
     config.set_authorization_policy(ACLAuthorizationPolicy())
+    config.set_authentication_policy(HTTPHeaderAuthenticationPolicy(debug=debug_authn))
     config.registry.registerAdapter(OneTimeRegistrationToken)
     config.registry.registerAdapter(OneTimeAuthToken)
