@@ -49,7 +49,7 @@ class Credentials(Persistent):
         user.add_credentials(self)
 
     def __json__(self, request):
-        return {'Authorization': self.header(), 'userid': self.user.userid}
+        return {'Authorization': self.header(), 'userid': self.user.userid, 'user': self.user}
 
     def header(self):
         merged = "%s:%s" % (self.user.userid, self.token)
