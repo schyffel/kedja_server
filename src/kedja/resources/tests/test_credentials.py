@@ -49,5 +49,5 @@ class HTTPHeaderAuthenticationPolicyTests(TestCase):
         request = testing.DummyRequest()
         apply_request_extensions(request)
         results = obj.__json__(request)
-        expected = {'Authorization':  obj.header(), 'userid': '1'}
-        self.assertEqual(results, expected)
+        self.assertEqual(results['Authorization'], obj.header())
+        self.assertEqual(results['userid'], '1')

@@ -62,18 +62,6 @@ class FunctionalUsersAPITests(TestCase):
                            status=200)
         self.assertEqual({"type_name": "User", "rid": 10, "data": {'first_name': 'Jane', 'last_name': 'Doe'}}, response.json_body)
 
-    def test_put_bad_data(self):
-        wsgiapp = self.config.make_wsgi_app()
-        app = TestApp(wsgiapp)
-        request = testing.DummyRequest()
-        apply_request_extensions(request)
-        root, cred = self._fixture(request)
-        response = app.put('/api/1/users/10',
-                           params="{}",
-                           headers={'Authorization': cred.header()},
-                           status=400)
-        self.assertEqual(response.json_body.get('status', None), 'error')
-
     def test_delete(self):
         wsgiapp = self.config.make_wsgi_app()
         app = TestApp(wsgiapp)
