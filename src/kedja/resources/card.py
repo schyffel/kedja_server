@@ -12,7 +12,12 @@ class CardSchema(colander.Schema):
     title = colander.SchemaNode(
         colander.String(),
         title=_("Title"),
-        missing="- Untitled- ",
+        missing=colander.drop,
+    )
+    int_indicator = colander.SchemaNode(
+        colander.Int(),
+        title=_("Simple value for indicator"),
+        missing=colander.drop,
     )
 
     def after_bind(self, node, kw):
@@ -22,6 +27,8 @@ class CardSchema(colander.Schema):
 
 @implementer(ICard)
 class Card(Folder, JSONRenderable):
+    title = "- Untiled -"
+    int_indicator = -1
 
     def __init__(self, **kw):
         super().__init__(**kw)

@@ -123,7 +123,9 @@ class FunctionalCollectionsAPITests(TestCase):
         apply_request_extensions(request)
         self._fixture(request)
         response = app.get('/api/1/collections/3/cards/4', status=200)
-        self.assertEqual(response.json_body, {'data': {}, 'rid': 4, 'type_name': 'Card'})
+        res_data = response.json_body
+        res_data.pop('data')  # To make testing easier
+        self.assertEqual(res_data, {'rid': 4, 'type_name': 'Card'})
 
     def test_get_404_parent(self):
         wsgiapp = self.config.make_wsgi_app()
@@ -148,7 +150,8 @@ class FunctionalCollectionsAPITests(TestCase):
         apply_request_extensions(request)
         self._fixture(request)
         response = app.put('/api/1/collections/3/cards/4', params=dumps({'title': 'Hello world!'}), status=200)
-        self.assertEqual({"type_name": "Card", "rid": 4, "data": {"title": "Hello world!"}}, response.json_body)
+        self.assertEqual(response.json_body['rid'], 4)
+        self.assertEqual(response.json_body['type_name'], 'Card')
 
     def test_put_bad_data(self):
         wsgiapp = self.config.make_wsgi_app()
@@ -182,7 +185,7 @@ class FunctionalCollectionsAPITests(TestCase):
         apply_request_extensions(request)
         self._fixture(request)
         response = app.get('/api/1/collections/3/cards', status=200)
-        self.assertEqual([{'data': {}, 'rid': 4, 'type_name': 'Card'}], response.json_body)
+        self.assertEqual([{'data': {'int_indicator': -1, 'title': '- Untiled -'}, 'rid': 4, 'type_name': 'Card'}], response.json_body)
 
     def test_collection_post(self):
         wsgiapp = self.config.make_wsgi_app()
@@ -196,7 +199,8 @@ class FunctionalCollectionsAPITests(TestCase):
         keys.remove('card')
         self.assertEqual(len(keys), 1)
         new_rid = int(keys[0])
-        self.assertEqual({'data': {'title': 'Hello world!'}, 'rid': new_rid, 'type_name': 'Card'}, response.json_body)
+        self.assertEqual({'data': {'title': 'Hello world!', 'int_indicator': -1}, 'rid': new_rid, 'type_name': 'Card'},
+                         response.json_body)
 
     def test_collection_post_bad_data(self):
         wsgiapp = self.config.make_wsgi_app()
