@@ -12,7 +12,7 @@ class CollectionSchema(colander.Schema):
     title = colander.SchemaNode(
         colander.String(),
         title=_("Title"),
-        missing="- Untitled- ",
+        missing=colander.drop,
     )
 
     def after_bind(self, node, kw):
@@ -22,6 +22,7 @@ class CollectionSchema(colander.Schema):
 
 @implementer(ICollection)
 class Collection(Folder, JSONRenderable):
+    title = ""
 
     def __init__(self, **kw):
         super().__init__(**kw)

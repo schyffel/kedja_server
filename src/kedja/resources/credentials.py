@@ -7,7 +7,6 @@ from random import choice
 
 from arche.content import ContentType
 from persistent import Persistent
-#from pyramid.threadlocal import get_current_registry
 from zope.interface import implementer
 
 from kedja.interfaces import ICredentials

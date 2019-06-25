@@ -14,8 +14,9 @@ class RootSchema(colander.Schema):
         colander.String(),
         title=_("Title"),
         validator=colander.Length(min=5, max=100),
-        missing="- Untitled- ",
+        missing=colander.drop,
     )
+
     def after_bind(self, node, kw):
         """ Use this instead of deferred, since cornice can't handle schema binding. """
         pass
@@ -23,6 +24,7 @@ class RootSchema(colander.Schema):
 @implementer(IRoot)
 class Root(Folder, JSONRenderable):
     """ Application root - created once. """
+    title = "- Untitled -"
 
     def __init__(self):
         super().__init__()

@@ -202,7 +202,7 @@ class FunctionalWallsAPITests(TestCase):
         apply_request_extensions(request)
         self._fixture(request)
         response = app.get('/api/1/walls/2', status=200)
-        self.assertEqual(response.json_body, {'data': {}, 'rid': 2, 'type_name': 'Wall'})
+        self.assertEqual(response.json_body, {'data': {'title': ''}, 'rid': 2, 'type_name': 'Wall'})
 
     def test_get_404(self):
         wsgiapp = self.config.make_wsgi_app()
@@ -256,7 +256,7 @@ class FunctionalWallsAPITests(TestCase):
         apply_request_extensions(request)
         self._fixture(request)
         response = app.get('/api/1/walls', status=200)
-        self.assertEqual([{'data': {}, 'rid': 2, 'type_name': 'Wall'}], response.json_body)
+        self.assertEqual([{'data': {'title': ''}, 'rid': 2, 'type_name': 'Wall'}], response.json_body)
 
     def test_collection_post(self):
         wsgiapp = self.config.make_wsgi_app()

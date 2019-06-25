@@ -13,6 +13,7 @@ class WallSchema(colander.Schema):
     title = colander.SchemaNode(
         colander.String(),
         title=_("Title"),
+        missing=colander.drop,
     )
 
     def after_bind(self, node, kw):
@@ -22,6 +23,7 @@ class WallSchema(colander.Schema):
 
 @implementer(IWall)
 class Wall(Folder, JSONRenderable):
+    title = ""
 
     def __init__(self, **kw):
         super().__init__(**kw)

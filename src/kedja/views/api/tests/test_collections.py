@@ -120,7 +120,7 @@ class FunctionalCollectionsAPITests(TestCase):
         apply_request_extensions(request)
         self._fixture(request)
         response = app.get('/api/1/walls/2/collections/3', status=200)
-        self.assertEqual(response.json_body, {'data': {}, 'rid': 3, 'type_name': 'Collection'})
+        self.assertEqual(response.json_body, {'data': {'title': ''}, 'rid': 3, 'type_name': 'Collection'})
 
     def test_get_404_child(self):
         wsgiapp = self.config.make_wsgi_app()
@@ -179,7 +179,7 @@ class FunctionalCollectionsAPITests(TestCase):
         apply_request_extensions(request)
         self._fixture(request)
         response = app.get('/api/1/walls/2/collections', status=200)
-        self.assertEqual([{'data': {}, 'rid': 3, 'type_name': 'Collection'}], response.json_body)
+        self.assertEqual([{'data': {'title': ''}, 'rid': 3, 'type_name': 'Collection'}], response.json_body)
 
     def test_collection_get_404(self):
         wsgiapp = self.config.make_wsgi_app()
