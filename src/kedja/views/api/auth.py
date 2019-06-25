@@ -269,13 +269,7 @@ class LogoutView(APIBase):
         forget(self.request)
         return {'bye': userid}
 
-    @view_config(route_name='logout')
-    def get(self):
-        forget(self.request)
-        return HTTPFound(location=self.request.registry.settings['kedja.client_url'])
-
 
 def includeme(config):
     config.add_route('login', '/login/{provider_name}')
-    config.add_route('logout', '/logout')
     config.scan(__name__)
