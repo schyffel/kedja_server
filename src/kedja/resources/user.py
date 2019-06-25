@@ -22,10 +22,24 @@ class UserSchema(colander.Schema):
     first_name = colander.SchemaNode(
         colander.String(),
         title = "First name",
+        missing=colander.drop,
     )
     last_name = colander.SchemaNode(
         colander.String(),
         title = "Last name",
+        missing=colander.drop,
+    )
+    email = colander.SchemaNode(
+        colander.String(),
+        title = "Email",
+        validator = colander.Email(),
+        missing=colander.drop,
+    )
+    picture = colander.SchemaNode(
+        colander.String(),
+        title = "Profile picture url",
+        validator = colander.url,
+        missing=colander.drop,
     )
 
     def after_bind(self, node, kw):

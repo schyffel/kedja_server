@@ -192,6 +192,16 @@ class AuthomaticView(BaseView, AuthViewMixin):
                     # self.request.registry.settings['kedja.client_url']
                     registration_url = came_from + '/register?t=' + token
                     return HTTPFound(location=registration_url)
+
+                # Update existing user in case something differs, but don't change usernames if they exist
+                userdata = result.user.to_dict()
+                for k in ('first_name', 'last_name'):
+                    currdata = getattr(user, k, None)
+                    if currdata:
+                        userdata.pop(k, None)
+                with self.request.get_mutator(user) as mutator:
+                    mutator.update(userdata)
+
                 # Login user
                 cred = self.request.registry.content('Credentials', user)
                 auth_token = self.auth_tokens.create(cred)
@@ -217,10 +227,12 @@ class AuthRegisterAPIView(APIBase, AuthViewMixin):
     def post(self):
         userpayload = self.reg_tokens.consume(self.request.matchdict['token'], registry=self.request.registry)
         users = self.root['users']
-        # FIXME: Handle all other updates from POST?
         user = self.request.registry.content('User', rid=self.request.root.rid_map.new_rid())
         users[user.userid] = user
         users.add_provider(user, userpayload)
+        # FIXME: Handle all other updates from POST?
+        with self.request.get_mutator(user) as mutator:
+             mutator.update(userpayload)
         cred = self.request.registry.content('Credentials', user)
         return cred
 
