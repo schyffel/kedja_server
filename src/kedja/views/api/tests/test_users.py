@@ -74,7 +74,6 @@ class FunctionalUsersAPITests(TestCase):
                            status=400)
         self.assertEqual(response.json_body.get('status', None), 'error')
 
-
     def test_delete(self):
         wsgiapp = self.config.make_wsgi_app()
         app = TestApp(wsgiapp)
@@ -84,7 +83,7 @@ class FunctionalUsersAPITests(TestCase):
         response = app.delete('/api/1/users/10', status=200,
                               headers={'Authorization': cred.header()},)
         self.assertEqual({"removed": 10}, response.json_body)
-   
+
     # def test_collection_get(self):
     #     wsgiapp = self.config.make_wsgi_app()
     #     app = TestApp(wsgiapp)
