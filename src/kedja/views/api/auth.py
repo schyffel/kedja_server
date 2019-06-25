@@ -37,6 +37,7 @@ Returned url will be "<client url>/register?t=<a long temp reg token>"
 The credentials will be returned (same as 4A)
 """
 from logging import getLogger
+from urllib.parse import urlparse
 
 from authomatic.adapters import WebObAdapter
 from cornice.resource import resource
@@ -89,16 +90,6 @@ class AuthViewMixin(object):
     def reg_tokens(self):
         return self.request.registry.getAdapter(self.context, IOneTimeRegistrationToken)
 
-    def create_login_credentials(self, user):
-        cred = self.request.registry.content('Credentials', user)
-        auth_token = self.auth_tokens.create(cred)
-        login_url = "{}/logging_in?u={}&t={}".format(
-            self.request.registry.settings['kedja.client_url'],
-            user.userid,
-            auth_token
-        )
-        return HTTPFound(location=login_url)
-
     def validate_temp_auth_token(self, request, **kw):
         userid = self.request.matchdict['userid']
         token = self.request.matchdict['token']
@@ -136,6 +127,11 @@ class AuthomaticView(BaseView, AuthViewMixin):
         if authomatic is None:
             raise HTTPBadRequest("We don't know how to process login - no providers configured.")
 
+        came_from = self.request.GET.pop('came_from', None)
+        if came_from:
+            self.request.session['came_from'] = came_from
+            self.request.session.changed()
+
         # Start the login procedure.
         result = authomatic.login(WebObAdapter(self.request, response), provider_name)
 
@@ -170,6 +166,21 @@ class AuthomaticView(BaseView, AuthViewMixin):
                 # FIXME: The result will contain information on wether the email is verified and so on.
                 # In case it is, the provider should be added to existing user instead.
 
+                # Check incoming came from param, here we want to remove it.
+                came_from = self.request.session.get('came_from', None)
+
+                # Allow any URL on a registered domain?
+                if came_from is None:
+                    came_from = self.request.registry.settings['kedja.client_url']
+                else:
+                    # Validate, pick first registered if none exist
+                    # TODO: Allow other URLs
+                    parsed = urlparse(came_from)
+                    if not parsed.hostname in ['localhost', '127.0.0.1']:
+                        # Nuke incoming in case it isn't localhost
+                        came_from = self.request.registry.settings['kedja.client_url']
+                    self.request.session.changed()
+
                 if user is None:
                     # Now we do need more info
                     if not updated:
@@ -178,11 +189,18 @@ class AuthomaticView(BaseView, AuthViewMixin):
                     reg_tokens = self.request.registry.getAdapter(self.context, IOneTimeRegistrationToken)
                     token = reg_tokens.create(result.user.to_dict())
                     # Redirect back to client with the token
-                    client_url = self.request.registry.settings['kedja.client_url']
-                    registration_url = client_url + '/register?t=' + token
+                    # self.request.registry.settings['kedja.client_url']
+                    registration_url = came_from + '/register?t=' + token
                     return HTTPFound(location=registration_url)
                 # Login user
-                return self.create_login_credentials(user)
+                cred = self.request.registry.content('Credentials', user)
+                auth_token = self.auth_tokens.create(cred)
+                login_url = "{}/logging_in?u={}&t={}".format(
+                    came_from,
+                    user.userid,
+                    auth_token
+                )
+                return HTTPFound(location=login_url)
 
         # It won't work if you don't return the response
         return response

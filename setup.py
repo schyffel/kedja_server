@@ -14,6 +14,7 @@ requires = [
     'pyramid_retry',
     'pyramid_tm',
     'pyramid_zodbconn',
+    'pyramid_session_redis',
     'transaction',
     'ZODB3',
     'arche',
