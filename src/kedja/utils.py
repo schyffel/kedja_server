@@ -27,7 +27,3 @@ def get_redis_conn(registry=None):
 
 def _redis_conn_rm(request):
     return get_redis_conn(request.registry)
-
-
-def includeme(config):
-    config.add_request_method(_redis_conn_rm, name='redis_conn', reify=True)

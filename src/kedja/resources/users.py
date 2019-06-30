@@ -9,7 +9,7 @@ from BTrees.OLBTree import OLBTree
 from kedja import _
 from kedja.interfaces import IUser
 from kedja.interfaces import IUsers
-from kedja.resources.mixins import JSONRenderable
+from kedja.resources.json import JSONRenderable
 
 
 class UsersSchema(colander.Schema):

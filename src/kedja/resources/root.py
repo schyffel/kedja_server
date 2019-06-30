@@ -4,7 +4,7 @@ from arche.content import ContentType
 from arche.objectmap.rid_map import ResourceIDMap
 from zope.interface import implementer
 
-from kedja.resources.mixins import JSONRenderable
+from kedja.resources.json import JSONRenderable
 from kedja.interfaces import IRoot
 from kedja import _
 

@@ -13,6 +13,7 @@ class FunctionalUsersAPITests(TestCase):
     def setUp(self):
         self.config = testing.setUp(settings=get_settings())
         self.config.include('kedja.testing')
+        self.config.include('kedja.security.default_acl')
         self.config.include('kedja.views.api.users')
 
     def _fixture(self, request):

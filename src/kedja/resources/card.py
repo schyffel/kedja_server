@@ -5,7 +5,7 @@ from zope.interface import implementer
 
 from kedja import _
 from kedja.interfaces import ICard
-from kedja.resources.mixins import JSONRenderable
+from kedja.resources.json import JSONRenderable
 
 
 class CardSchema(colander.Schema):
@@ -36,6 +36,8 @@ class Card(Folder, JSONRenderable):
 
 
 CardContent = ContentType(factory=Card, schema=CardSchema, title=_("Card"))
+
+CardPerms = CardContent.permissions
 
 
 def includeme(config):

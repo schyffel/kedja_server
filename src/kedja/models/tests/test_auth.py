@@ -72,7 +72,6 @@ class OneTimeRegistrationTokenTests(TestCase):
     def setUp(self):
         self.config = testing.setUp()
         self.config.include('arche.content')
-        self.config.include('kedja.utils')
         self.config.include('kedja.resources.root')
 
     def tearDown(self):
@@ -117,7 +116,6 @@ class OneTimeAuthTokenTests(TestCase):
     def setUp(self):
         self.config = testing.setUp()
         self.config.include('arche.content')
-        self.config.include('kedja.utils')
         self.config.include('kedja.resources')
 
     def tearDown(self):

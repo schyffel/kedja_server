@@ -1,6 +1,4 @@
 
-# FIXME: This is of course a stub :)
-
 class JSONRenderable(object):
 
     def __json__(self, request):

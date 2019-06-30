@@ -5,7 +5,7 @@ from zope.interface import implementer
 
 from kedja import _
 from kedja.interfaces import ICollection
-from kedja.resources.mixins import JSONRenderable
+from kedja.resources.json import JSONRenderable
 
 
 class CollectionSchema(colander.Schema):
@@ -30,6 +30,8 @@ class Collection(Folder, JSONRenderable):
 
 
 CollectionContent = ContentType(factory=Collection, schema=CollectionSchema, title=_("Collection"))
+
+CollectionPerms = CollectionContent.permissions
 
 
 def includeme(config):

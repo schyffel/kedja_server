@@ -61,3 +61,46 @@ class IOneTimeAuthToken(Interface):
     def consume(userid:str, token:str, registry=None):
         """ Consume token and return the real auth header.
         """
+
+
+class ISecurityAware(Interface):
+    """ A resource that will work with Pyramids ACL system and produce an ACL. It may also have roles assigned. """
+
+    acl_name = Attribute("Name of the ACL used for this resource")
+
+    def __acl__():
+        """ Called by Pyramids ACLAuthorizationPolicy.
+        """
+
+    def add_user_roles(userid:str, *roles):
+        """ Add roles, should be instances of kedja.models.acl.Role or Pyramids security Authenticated/Everyone."""
+
+    def remove_user_roles(userid:str, *roles):
+        """ Remove roles, should be instances of kedja.models.acl.Role or Pyramids security Authenticated/Everyone."""
+
+    def get_computed_acl(userids=[], request=None):
+        """ Figure out permissions for userids based on the roles and named acl lists on each resource.
+            Permissions will be fetched by walking towards the root.
+
+            Any roles will be translated to userids.
+
+            Will return a generator with tuples with action, userid or system role, and then permissions.
+
+            It will traverse backwards from self to the root and then insert pyramid.security.DENY_ALL.
+
+            See Pyramids security docs.
+        """
+
+    def get_roles_map(userids):
+        """ Return a dict with str userid as key, and a set of roles as values.
+            Userids with no roles will be skipped.
+        """
+
+    def get_acl(registry=None):
+        """ Get the current contexts ACL, if any. """
+
+
+
+
+class INamedACL(Interface):
+    pass

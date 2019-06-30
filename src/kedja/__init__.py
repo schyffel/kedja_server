@@ -64,5 +64,7 @@ def includeme(config):
     config.include('arche.mutator')
     config.include('arche.schemas')
     # Internal
+    config.include('.config')
     config.include('.models')
     config.include('.resources')
+    config.include('.security.default_acl')
