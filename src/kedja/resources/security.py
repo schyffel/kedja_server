@@ -1,5 +1,6 @@
 from logging import getLogger
 
+from arche.interfaces import IResourceAdded
 from pyramid.decorator import reify
 from pyramid.location import lineage
 from pyramid.security import DENY_ALL
@@ -67,7 +68,7 @@ class SecurityAwareMixin(object):
         if request is None:
             request = get_current_request()
         if not isinstance(userids, list):
-            userids = list(userids)
+            userids = [userids]
         if request.authenticated_userid and request.authenticated_userid not in userids:
             userids.insert(0, request.authenticated_userid)
         registry = request.registry
@@ -91,3 +92,27 @@ class SecurityAwareMixin(object):
         else:
             logger.debug("%r returns acl %r", self, self.acl_name)
             return named_acl
+
+
+def set_role_from_authenticated(event):
+    """ Some content types within the content registry has a specific attribute called ownership_role.
+        It only exists so the currently logged in user will get that role automatically.
+
+        This subscriber listens to IResourceAdded events which have ISecurityAware resources.
+    """
+    resource = event.context
+    type_name = getattr(resource, 'type_name', resource.__class__.__name__)
+    ctype = event.registry.content[type_name]
+    role = ctype.kwargs.get('ownership_role', None)
+    if role is not None:
+        try:
+            userid = event.request.authenticated_userid
+        except AttributeError:
+            logger.exception("request not found, this is okay during unit tests")
+            userid = None
+        if userid:
+            resource.add_user_roles(userid, role)
+
+
+def includeme(config):
+    config.add_subscriber(set_role_from_authenticated, IResourceAdded, context=ISecurityAware)

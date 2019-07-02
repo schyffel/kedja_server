@@ -1,6 +1,7 @@
 from json import dumps
 from unittest import TestCase
 
+from kedja.testing import get_settings
 from pyramid import testing
 from pyramid.request import apply_request_extensions, Request
 from transaction import commit
@@ -92,18 +93,12 @@ class CollectionsAPIViewTests(TestCase):
 class FunctionalCollectionsAPITests(TestCase):
 
     def setUp(self):
-        settings={
-            'zodbconn.uri': 'memory://'
-        }
-        self.config = testing.setUp(settings=settings)
-        self.config.include('arche.content')
-        self.config.include('arche.mutator')
-        self.config.include('cornice')
-        self.config.include('cornice_swagger')
-        self.config.include('pyramid_zodbconn')
+        self.config = testing.setUp(settings=get_settings())
         self.config.include('pyramid_tm')
-        self.config.include('kedja.resources')
+        self.config.include('kedja.testing')
         self.config.include('kedja.views.api.collections')
+        # FIXME: Check with permissions too?
+        self.config.testing_securitypolicy(permissive=True)
 
     def _fixture(self, request):
         from kedja import root_factory

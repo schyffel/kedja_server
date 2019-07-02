@@ -203,7 +203,8 @@ class AuthomaticView(BaseView, AuthViewMixin):
                     mutator.update(userdata)
 
                 # Login user
-                cred = self.request.registry.content('Credentials', user)
+                cred = self.request.registry.content('Credentials', user.userid)
+                cred.save()
                 auth_token = self.auth_tokens.create(cred)
                 login_url = "{}/logging_in?u={}&t={}".format(
                     came_from,
@@ -233,7 +234,8 @@ class AuthRegisterAPIView(APIBase, AuthViewMixin):
         # FIXME: Handle all other updates from POST?
         with self.request.get_mutator(user) as mutator:
              mutator.update(userpayload)
-        cred = self.request.registry.content('Credentials', user)
+        cred = self.request.registry.content('Credentials', user.userid)
+        cred.save()
         return cred
 
     def validate_reg_token(self, request, **kw):

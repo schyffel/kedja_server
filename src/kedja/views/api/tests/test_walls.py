@@ -1,6 +1,7 @@
 from json import dumps, loads
 from unittest import TestCase
 
+from kedja.testing import get_settings
 from pyramid import testing
 from pyramid.renderers import render
 from pyramid.request import apply_request_extensions
@@ -15,8 +16,7 @@ class WallsAPIViewTests(TestCase):
 
     def setUp(self):
         self.config = testing.setUp()
-        self.config.include('arche.content')
-        self.config.include('arche.mutator')
+        self.config.include('kedja.testing.minimal')
         self.config.include('kedja.resources.root')
         self.config.include('kedja.resources.wall')
 
@@ -90,8 +90,7 @@ class WallsStructureAPIViewTests(TestCase):
 
     def setUp(self):
         self.config = testing.setUp()
-        self.config.include('arche.content')
-        self.config.include('arche.mutator')
+        self.config.include('kedja.testing.minimal')
         self.config.include('kedja.resources')
 
     def tearDown(self):
@@ -137,8 +136,7 @@ class WallsContentAPIViewTests(TestCase):
 
     def setUp(self):
         self.config = testing.setUp()
-        self.config.include('arche.content')
-        self.config.include('arche.mutator')
+        self.config.include('kedja.testing.minimal')
         self.config.include('kedja.resources')
 
     def tearDown(self):
@@ -175,18 +173,11 @@ class WallsContentAPIViewTests(TestCase):
 class FunctionalWallsAPITests(TestCase):
 
     def setUp(self):
-        settings={
-            'zodbconn.uri': 'memory://'
-        }
-        self.config = testing.setUp(settings=settings)
-        self.config.include('arche.content')
-        self.config.include('arche.mutator')
-        self.config.include('cornice')
-        self.config.include('cornice_swagger')
-        self.config.include('pyramid_zodbconn')
+        self.config = testing.setUp(settings=get_settings())
+        self.config.include('kedja.testing')
         self.config.include('pyramid_tm')
-        self.config.include('kedja.resources')
         self.config.include('kedja.views.api.walls')
+        self.config.testing_securitypolicy(permissive=True)
 
     def _fixture(self, request):
         from kedja import root_factory
@@ -303,17 +294,11 @@ class FunctionalWallsAPITests(TestCase):
 class FunctionalWallStructureAPIViewTests(TestCase):
 
     def setUp(self):
-        settings={
-            'zodbconn.uri': 'memory://'
-        }
-        self.config = testing.setUp(settings=settings)
-        self.config.include('arche.content')
-        self.config.include('cornice')
-        self.config.include('cornice_swagger')
-        self.config.include('pyramid_zodbconn')
+        self.config = testing.setUp(settings=get_settings())
+        self.config.include('kedja.testing')
         self.config.include('pyramid_tm')
-        self.config.include('kedja.resources')
         self.config.include('kedja.views.api.walls')
+        self.config.testing_securitypolicy(permissive=True)
 
     def _fixture(self, request):
         from kedja import root_factory
@@ -351,18 +336,11 @@ class FunctionalWallStructureAPIViewTests(TestCase):
 class FunctionalWallContentAPIViewTests(TestCase):
 
     def setUp(self):
-        settings={
-            'zodbconn.uri': 'memory://'
-        }
-        self.config = testing.setUp(settings=settings)
-        self.config.include('arche.content')
-        self.config.include('arche.mutator')
-        self.config.include('cornice')
-        self.config.include('cornice_swagger')
-        self.config.include('pyramid_zodbconn')
+        self.config = testing.setUp(settings=get_settings())
+        self.config.include('kedja.testing')
         self.config.include('pyramid_tm')
-        self.config.include('kedja.resources')
         self.config.include('kedja.views.api.walls')
+        self.config.testing_securitypolicy(permissive=True)
 
     def _fixture(self, request):
         from kedja import root_factory

@@ -5,7 +5,9 @@ from pyramid.authorization import ACLAuthorizationPolicy
 from pyramid.request import apply_request_extensions
 from zope.interface.verify import verifyObject
 
-from kedja.interfaces import IOneTimeAuthToken, IOneTimeRegistrationToken, ICredentials
+from kedja.interfaces import ICredentials
+from kedja.interfaces import IOneTimeAuthToken
+from kedja.interfaces import IOneTimeRegistrationToken
 from kedja.models.appmaker import root_populator
 
 
@@ -13,11 +15,11 @@ class HTTPHeaderAuthenticationPolicyTests(TestCase):
 
     def setUp(self):
         self.config = testing.setUp()
-        self.config.include('arche.content')
+        self.config.include('kedja.testing.minimal')
         self.config.include('kedja.resources.root')
         self.config.include('kedja.resources.user')
         self.config.include('kedja.resources.users')
-        self.config.include('kedja.resources.credentials')
+        self.config.include('kedja.models.credentials')
 
     def tearDown(self):
         testing.tearDown()
@@ -25,53 +27,78 @@ class HTTPHeaderAuthenticationPolicyTests(TestCase):
     def _fixture(self, request):
         root = request.registry.content('Root')
         root_populator(root, request)
-        cf = self.config.registry.content
-        root['users']['10'] = user = cf('User', rid=10)
-        cred = cf('Credentials', user, token='123')
-        user.add_credentials(cred)
-        return root, cred
+        return root
 
     @property
     def _cut(self):
         from kedja.models.auth import HTTPHeaderAuthenticationPolicy
         return HTTPHeaderAuthenticationPolicy
 
+    @property
+    def _Credentials(self):
+        from kedja.models.credentials import Credentials
+        return Credentials
+
+    @property
+    def _get_vc(self):
+        from kedja.models.credentials import get_valid_credentials
+        return get_valid_credentials
+
     def test_remember(self):
         request = testing.DummyRequest()
         apply_request_extensions(request)
-        root, cred = self._fixture(request)
+        root = self._fixture(request)
         auth = self._cut(debug=True)
         auth.remember(request, '10', token='abc', root=root)
-        user = root['users']['10']
-        self.assertIn('abc', user.credentials)
+        cred = self._get_vc('10', 'abc', registry=request.registry)
+        self.assertTrue(cred)
+        self.assertEqual('10', cred.userid)
+        self.assertEqual('abc', cred.token)
 
     def test_forget(self):
         request = testing.DummyRequest()
         apply_request_extensions(request)
-        root, cred = self._fixture(request)
-        request.root = root
-        request.headers['Authorization'] = cred.header()
+        root = self._fixture(request)
         auth = self._cut(debug=True)
+        auth.remember(request, '10', token='abc')
+        cred = self._get_vc('10', 'abc', registry=request.registry)
+        request.headers['Authorization'] = cred.header()
+        self.assertTrue(cred)
         auth.forget(request)
-        user = root['users']['10']
-        self.assertNotIn('123', user.credentials)
+        cred = self._get_vc('10', 'abc', registry=request.registry)
+        self.assertEqual(cred, None)
 
     def test_authenticated_userid(self):
         self.config.set_authorization_policy(ACLAuthorizationPolicy())
-        self.config.set_authentication_policy(self._cut(debug=True))
+        auth = self._cut(debug=True)
+        self.config.set_authentication_policy(auth)
         request = testing.DummyRequest()
+        auth.remember(request, '10', token='abc')
         apply_request_extensions(request)
-        root, cred = self._fixture(request)
-        request.root = root
+        self._fixture(request)
+        cred = self._get_vc('10', 'abc', registry=request.registry)
         request.headers['Authorization'] = cred.header()
         self.assertEqual('10', request.authenticated_userid)
+
+    def test_authenticated_userid_nonexisting_credentials(self):
+        self.config.set_authorization_policy(ACLAuthorizationPolicy())
+        auth = self._cut(debug=True)
+        self.config.set_authentication_policy(auth)
+        request = testing.DummyRequest()
+        auth.remember(request, '10', token='abc')
+        apply_request_extensions(request)
+        self._fixture(request)
+        cred = self._get_vc('10', 'abc', registry=request.registry)
+        request.headers['Authorization'] = cred.header()
+        cred.clear()
+        self.assertEqual(None, request.authenticated_userid)
 
 
 class OneTimeRegistrationTokenTests(TestCase):
 
     def setUp(self):
         self.config = testing.setUp()
-        self.config.include('arche.content')
+        self.config.include('kedja.testing.minimal')
         self.config.include('kedja.resources.root')
 
     def tearDown(self):
@@ -97,7 +124,6 @@ class OneTimeRegistrationTokenTests(TestCase):
         root = request.registry.content('Root')
         obj = self._cut(root)
         payload = {'hello': 'world'}
-
         temp_token = obj.create(payload, registry=self.config.registry)
         result = obj.consume(temp_token)
         self.assertEqual(payload, result)
@@ -115,7 +141,8 @@ class OneTimeAuthTokenTests(TestCase):
 
     def setUp(self):
         self.config = testing.setUp()
-        self.config.include('arche.content')
+        self.config.include('kedja.testing.minimal')
+        self.config.include('kedja.models.credentials')
         self.config.include('kedja.resources')
 
     def tearDown(self):
@@ -126,8 +153,8 @@ class OneTimeAuthTokenTests(TestCase):
         root_populator(root, request)
         cf = self.config.registry.content
         root['users']['10'] = user = cf('User', rid=10)
-        cred = cf('Credentials', user, token='123')
-        user.add_credentials(cred)
+        cred = cf('Credentials', '10', token='123')
+        cred.save()
         return root, cred
 
     @property

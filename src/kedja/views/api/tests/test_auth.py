@@ -55,7 +55,8 @@ class FunctionalAuthenticationAPITests(TestCase):
         apply_request_extensions(request)
         root = self._fixture(request)
         # Create login token
-        credentials = self.config.registry.content('Credentials', root['users']['10'])
+        credentials = self.config.registry.content('Credentials', '10')
+        credentials.save()
         commit()
         auth_tokens = self.config.registry.getAdapter(root, IOneTimeAuthToken)
         token = auth_tokens.create(credentials)

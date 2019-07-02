@@ -1,7 +1,9 @@
 from unittest import TestCase
 
 from arche.authentication.models import StaticAuthenticationPolicy
+from arche.content import ContentType
 from kedja.interfaces import ISecurityAware
+from kedja.testing import get_settings, TestingAuthenticationPolicy
 from pyramid import testing
 from pyramid.request import apply_request_extensions
 
@@ -173,3 +175,35 @@ class SecurityAwareMixinTests(TestCase):
         self.assertTrue(request.has_permission('comment', parent))
         self.assertTrue(request.has_permission('view', parent))
         self.assertFalse(request.has_permission('edit', parent))
+
+
+class SetRoleFromAuthenticatedTests(TestCase):
+
+    def setUp(self):
+        self.config = testing.setUp(settings=get_settings())
+        self.config.include('kedja.testing')
+
+    def tearDown(self):
+        testing.tearDown()
+
+    @property
+    def _resource(self):
+        from arche.folder import Folder
+        from kedja.resources.security import SecurityAwareMixin
+
+        class DummySecurityAware(Folder, SecurityAwareMixin):
+            type_name = 'Dummy'
+            acl_name = ""
+
+        return DummySecurityAware
+
+    def test_set_role_from_authenticated(self):
+        ct = ContentType(self._resource, ownership_role='SomeRole')
+        self.config.add_content(ct)
+        self.config.set_authentication_policy(TestingAuthenticationPolicy(userid='10'))
+        request = testing.DummyRequest()
+        self.config.begin(request)
+        content = self.config.registry.content
+        root = content('Root')
+        root['dummy'] = dummy = content('Dummy')
+        self.assertEqual({'SomeRole'}, dummy.get_roles(10))

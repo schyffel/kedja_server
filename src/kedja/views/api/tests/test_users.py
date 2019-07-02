@@ -20,7 +20,8 @@ class FunctionalUsersAPITests(TestCase):
         from kedja import root_factory
         root = root_factory(request)
         root['users']['10'] = user = request.registry.content('User', rid=10, first_name='Jeff')
-        cred = request.registry.content('Credentials', user)
+        cred = request.registry.content('Credentials', '10')
+        cred.save()
         commit()
         return root, cred
 

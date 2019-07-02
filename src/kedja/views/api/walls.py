@@ -46,18 +46,15 @@ class WallsAPIView(ResourceAPIBase):
     type_name = 'Wall'
     parent_type_name = 'Root'
 
-    # def __acl__(self):
-    #    return [(Allow, Everyone, 'everything')]
-
-    @view(schema=ResourceAPISchema())
+    @view(schema=ResourceAPISchema(), validators=(colander_validator, 'view_resource_validator'))
     def get(self):
         return self.base_get(self.request.matchdict['rid'], type_name='Wall')
 
-    @view(schema=UpdateWallAPISchema())
+    @view(schema=UpdateWallAPISchema(), validators=(colander_validator, 'edit_resource_validator'))
     def put(self):
         return self.base_put(self.request.matchdict['rid'], type_name='Wall')
 
-    @view(schema=ResourceAPISchema())
+    @view(schema=ResourceAPISchema(), validators=(colander_validator, 'delete_resource_validator'))
     def delete(self):
         return self.base_delete(self.request.matchdict['rid'], type_name='Wall')
 
@@ -78,13 +75,10 @@ class WallsAPIView(ResourceAPIBase):
 class WallStructureAPIView(ResourceAPIBase):
     type_name = 'Wall'
 
-    # def __acl__(self):
-    #    return [(Allow, Everyone, 'everything')]
-
     @view(schema=ResourceAPISchema())
     def get(self):
         """
-        Return a structure with all contained items. It has to be a list since we want to keep order
+        Return a structure with all contained items. It has to be a list since we want to keep order.
 
         It could look something like this:
         [
@@ -113,17 +107,14 @@ class WallStructureAPIView(ResourceAPIBase):
 
 
 @resource(path='/api/1/walls/{rid}/content',
-          validators=(colander_validator,),
+          # validators=(colander_validator,),
           cors_origins=('*',),
           tags=['Walls'],
           factory='kedja.root_factory')
 class WallContentAPIView(ResourceAPIBase):
     type_name = 'Wall'
 
-    # def __acl__(self):
-    #    return [(Allow, Everyone, 'everything')]
-
-    @view(schema=ResourceAPISchema())
+    @view(schema=ResourceAPISchema(), validators=(colander_validator, 'view_resource_validator'))
     def get(self):
         """ Get a structure with all of the content within this wall.
             It returns a dict where the resource ID is the key.

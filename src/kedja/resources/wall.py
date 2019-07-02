@@ -1,8 +1,6 @@
 import colander
 from arche.folder import Folder
 from arche.content import ContentType
-from kedja.permissions import INVITE, VISIBILITY
-from pyramid.security import DENY_ALL
 from zope.interface import implementer
 
 from kedja import _
@@ -10,6 +8,9 @@ from kedja.interfaces import IWall
 from kedja.models.relations import RelationMap
 from kedja.resources.json import JSONRenderable
 from kedja.resources.security import SecurityAwareMixin
+from kedja.security import WALL_OWNER
+from kedja.permissions import INVITE
+from kedja.permissions import VISIBILITY
 
 
 class WallSchema(colander.Schema):
@@ -34,17 +35,10 @@ class Wall(Folder, JSONRenderable, SecurityAwareMixin):
         self.relations_map = RelationMap()
         self.order = ()  # Enable ordering
 
-    # def __acl__(self):
-    #     acl = self.get_context_acl()
-    #     acl.extend(self.__parent__.get_context_acl())
-    #     acl.append(DENY_ALL)
-    #     return acl
 
-
-WallContent = ContentType(factory=Wall, schema=WallSchema, title=_("Wall"))
+WallContent = ContentType(factory=Wall, schema=WallSchema, title=_("Wall"), ownership_role=WALL_OWNER)
 WallContent.add_permission_type(INVITE)
 WallContent.add_permission_type(VISIBILITY)
-
 WallPerms = WallContent.permissions
 
 

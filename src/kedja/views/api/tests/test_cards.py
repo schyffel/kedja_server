@@ -1,6 +1,7 @@
 from json import dumps
 from unittest import TestCase
 
+from kedja.testing import get_settings
 from pyramid import testing
 from pyramid.request import apply_request_extensions, Request
 from transaction import commit
@@ -13,8 +14,7 @@ class CardsAPIViewTests(TestCase):
 
     def setUp(self):
         self.config = testing.setUp()
-        self.config.include('arche.content')
-        self.config.include('arche.mutator')
+        self.config.include('kedja.testing.minimal')
         self.config.include('kedja.resources.root')
         self.config.include('kedja.resources.wall')
         self.config.include('kedja.resources.collection')
@@ -91,21 +91,15 @@ class CardsAPIViewTests(TestCase):
         self.assertEqual(len(root['wall']['collection']), 2)
 
 
-class FunctionalCollectionsAPITests(TestCase):
+class FunctionalCardsAPITests(TestCase):
 
     def setUp(self):
-        settings={
-            'zodbconn.uri': 'memory://'
-        }
-        self.config = testing.setUp(settings=settings)
-        self.config.include('arche.content')
-        self.config.include('arche.mutator')
-        self.config.include('cornice')
-        self.config.include('cornice_swagger')
-        self.config.include('pyramid_zodbconn')
+        self.config = testing.setUp(settings=get_settings())
         self.config.include('pyramid_tm')
-        self.config.include('kedja.resources')
+        self.config.include('kedja.testing')
         self.config.include('kedja.views.api.cards')
+        # FIXME: Check with permissions too?
+        self.config.testing_securitypolicy(permissive=True)
 
     def _fixture(self, request):
         from kedja import root_factory

@@ -6,6 +6,7 @@ from arche.content import EDIT, VIEW, DELETE
 from pyramid.decorator import reify
 from pyramid.traversal import find_root
 
+
 logger = getLogger(__name__)
 
 
@@ -55,6 +56,12 @@ class APIBase(object):
             return True
         self.error("The fetched resource is not a %r" % type_name, type='path', status=404)
         return False
+
+    def view_resource_validator(self, request, **kw):
+        context = self.base_get(request.matchdict['rid'])
+        if context is not None:
+            if not request.registry.content.has_permission_type(context, request, VIEW):
+                self.error("You're not allowed to view: %s" % context.rid, status=403)
 
     def base_get(self, rid, type_name=None):
         """ Get specific resource. Validate type_name if specified. """
@@ -106,11 +113,15 @@ class ResourceAPIBase(APIBase):
     def base_collection_get(self, parent, type_name=None):
         if parent is None:
             return
-        results = []
+        resources = []
         for x in parent.values():
             if type_name is None:
-                results.append(x)
+                resources.append(x)
             elif getattr(x, 'type_name', object()) == type_name:
+                resources.append(x)
+        results = []
+        for x in resources:
+            if self.request.registry.content.has_permission_type(x, self.request, VIEW):
                 results.append(x)
         return results
 
@@ -132,19 +143,13 @@ class ResourceAPIBase(APIBase):
         context = self.base_get(request.matchdict['rid'])
         if context is not None:
             if not request.registry.content.has_permission_type(context, request, EDIT):
-                self.error("You're not allowed to edit: %s" % context, status=403)
-
-    def view_resource_validator(self, request, **kw):
-        context = self.base_get(request.matchdict['rid'])
-        if context is not None:
-            if not request.registry.content.has_permission_type(context, request, VIEW):
-                self.error("You're not allowed to view: %s" % context, status=403)
+                self.error("You're not allowed to edit: %s" % context.rid, status=403)
 
     def delete_resource_validator(self, request, **kw):
         context = self.base_get(request.matchdict['rid'])
         if context is not None:
             if not request.registry.content.has_permission_type(context, request, DELETE):
-                self.error("You're not allowed to delete: %s" % context, status=403)
+                self.error("You're not allowed to delete: %s" % context.rid, status=403)
 
 
 class RIDPathSchema(colander.Schema):
