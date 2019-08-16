@@ -28,6 +28,6 @@ lib
 parts
 include
 develop-eggs
-!src
 src/*
 !src/kedja
+!src/kedja_server.egg-info

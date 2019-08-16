@@ -1,0 +1,26 @@
+Metadata-Version: 2.1
+Name: kedja-server
+Version: 0.1.0
+Summary: Kedja Server
+Home-page: UNKNOWN
+Author: 
+Author-email: 
+License: UNKNOWN
+Description: Kedja Server
+        ============
+        
+        This is a prototype, not ment to be used :)
+        
+        
+        0.0
+        ---
+        
+        - Initial version.
+        
+Keywords: web pyramid pylons
+Platform: UNKNOWN
+Classifier: Programming Language :: Python
+Classifier: Framework :: Pyramid
+Classifier: Topic :: Internet :: WWW/HTTP
+Classifier: Topic :: Internet :: WWW/HTTP :: WSGI :: Application
+Provides-Extra: testing

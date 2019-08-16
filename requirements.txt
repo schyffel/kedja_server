@@ -1,0 +1,10 @@
+coverage
+lingua
+nose
+pyramid_chameleon
+pyramid_debugtoolbar
+pyramid_ipython
+requests
+waitress
+git+https://github.com/ArcheProject/Arche.git
+git+https://github.com/authomatic/authomatic.git

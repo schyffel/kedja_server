@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  redis:
+    image: redis
+  web:
+    build: .
+    command: pserve etc/development.ini --reload
+    volumes:
+      - .:/code
+    ports:
+      - "6543:6543"
+    depends_on:
+      - redis

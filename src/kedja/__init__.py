@@ -58,11 +58,11 @@ def includeme(config):
     config.include('cornice')
     config.include('cornice_swagger')
     # Arche modules - note: will change!
-    config.include('arche.predicates')
-    config.include('arche.request_methods')
-    config.include('arche.content')
-    config.include('arche.mutator')
-    config.include('arche.schemas')
+    # config.include('arche.predicates')
+    # config.include('arche.request_methods')
+    # config.include('arche.content')
+    # config.include('arche.mutator')
+    # config.include('arche.schemas')
     # Internal
     config.include('.config')
     config.include('.models')
